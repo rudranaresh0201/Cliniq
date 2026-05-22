@@ -1,0 +1,5 @@
+Hemoglobin: 9.2 g/dL
+WBC: 11200 /uL
+Platelet Count: 85000 /uL
+SGOT: 65 U/L
+SGPT: 72 U/L

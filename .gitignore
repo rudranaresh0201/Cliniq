@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.env
+chroma_db/
+logs/
+node_modules/
+frontend/dist/
+*.egg-info/
+.venv/
+venv/

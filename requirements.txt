@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+pydantic
+httpx
+python-dotenv
+groq
+chromadb
+sentence-transformers
+supabase
+PyMuPDF
+rank-bm25
+google-generativeai
+# ragas  # optional evaluation framework
