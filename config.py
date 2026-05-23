@@ -16,7 +16,7 @@ MAX_RETRY_LOOPS = int(os.getenv("MAX_RETRY_LOOPS", 3))
 
 #MODELS
 GROQ_MODEL = "llama-3.3-70b-versatile"
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+EMBEDDING_MODEL = "pritamdeka/PubMedBERT-mnli-snli-scinli-scitail-mednli-stsb"
 
 #CHROMADB
 CHROMA_COLLECTION = "medical_knowledge"

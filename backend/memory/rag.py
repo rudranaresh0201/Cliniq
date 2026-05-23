@@ -3,6 +3,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 import time
+import logging
 import chromadb
 from sentence_transformers import SentenceTransformer
 from config import (
@@ -14,6 +15,8 @@ from config import (
     TTL_DRUG_ALERTS,
     TTL_PAPERS,
 )
+
+logger = logging.getLogger("cliniq")
 
 # Maps source_type strings to their TTL in seconds
 TTL_MAP: dict[str, float] = {
@@ -39,6 +42,46 @@ def _get_collection():
             metadata={"hnsw:space": "cosine"},
         )
     return _collection
+
+
+def reset_collection_if_model_changed():
+    """
+    Checks if embedding model changed.
+    If yes, clears ChromaDB collection.
+    Old vectors from a different model produce wrong similarity scores.
+    """
+    global _chroma_client, _collection
+    try:
+        collection = _get_collection()
+        metadata = collection.metadata or {}
+        stored_model = metadata.get("embedding_model", "")
+        current_model = EMBEDDING_MODEL
+
+        if stored_model and stored_model != current_model:
+            logger.warning(
+                f"Embedding model changed from {stored_model} "
+                f"to {current_model}. Clearing collection."
+            )
+            _chroma_client.delete_collection(CHROMA_COLLECTION)
+            _chroma_client.create_collection(
+                name=CHROMA_COLLECTION,
+                metadata={
+                    "hnsw:space": "cosine",
+                    "embedding_model": current_model,
+                }
+            )
+            _collection = None  # force re-fetch on next access
+        elif not stored_model:
+            collection.modify(metadata={
+                "hnsw:space": "cosine",
+                "embedding_model": current_model,
+            })
+    except Exception as e:
+        logger.error(f"Model change check failed: {e}")
+
+
+# Run at module load time to guard against stale vectors
+reset_collection_if_model_changed()
 
 
 def _get_model() -> SentenceTransformer:
@@ -124,6 +167,7 @@ def get_cache_stats() -> dict:
         return {
             "total_entries": count,
             "collection": CHROMA_COLLECTION,
+            "embedding_model": EMBEDDING_MODEL,
             "similarity_threshold": SIMILARITY_THRESHOLD,
             "ttl_settings": {
                 "guidelines_days": TTL_GUIDELINES // 86400,

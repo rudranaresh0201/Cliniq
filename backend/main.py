@@ -15,10 +15,11 @@ from pydantic import BaseModel, Field
 from config import MAX_RETRY_LOOPS
 from backend.safety.redflags import check_emergency
 from backend.memory.rag import check_cache, store_result, get_cache_stats
-from backend.agents.classifier import classify_query
-from backend.agents.planner import plan_search
+from backend.agents.classifier_planner import classify_and_plan
 from backend.agents.evaluator import evaluate
 from backend.agents.synthesizer import synthesize, DISCLAIMER
+from backend.agents.faithfulness import check_faithfulness
+from backend.agents.contradiction_detector import check_contradictions
 from backend.retrieval.fetcher import fetch_all
 from backend.observability.logger import log_event, StageTimer
 from backend.models.patient import AnalyzeRequestV2
@@ -123,35 +124,29 @@ async def _run_pipeline(
     await _emit("cache_miss", {"status": "No cache hit — starting full retrieval"})
 
     # ------------------------------------------------------------------
-    # Stage 3: Query classification
+    # Stage 3+4: Combined classify + plan (single LLM call)
     # ------------------------------------------------------------------
-    await _emit("classifying", {"status": "Classifying query type…"})
-    classification = await classify_query(query)
-    await _emit("classified", {
-        "query_type": classification["query_type"],
-        "confidence": classification["confidence"],
-        "requires_drug_check": classification["requires_drug_check"],
+    await _emit("classifying", {"status": "Classifying query and planning search…"})
+    combined = await classify_and_plan(query, {
+        "age": age,
+        "state": state,
     })
-
-    # ------------------------------------------------------------------
-    # Stage 4: Search planning
-    # ------------------------------------------------------------------
-    await _emit("planning", {"status": "Planning search strategy…"})
-    plan = await plan_search(query, classification["query_type"], classification)
-    await _emit("planned", {
-        "searches": plan["searches"],
-        "drugs_to_check": plan["drugs_to_check"],
-        "strategy": plan["strategy"],
+    await _emit("classified", {
+        "query_type": combined["query_type"],
+        "confidence": combined["confidence"],
+        "requires_drug_check": combined["requires_drug_check"],
+        "searches": combined["searches"],
+        "strategy": combined["strategy"],
     })
 
     # Merge planner drugs with patient medications for drug checks
-    all_drugs = list({d.lower() for d in (plan["drugs_to_check"] + medications)})
+    all_drugs = list({d.lower() for d in (combined["drugs_to_check"] + medications)})
 
     # ------------------------------------------------------------------
     # Stage 5–6: Fetch → Evaluate loop (up to MAX_RETRY_LOOPS)
     # ------------------------------------------------------------------
     accumulated: dict = {"pubmed": [], "openfda": [], "total_sources": 0}
-    searches = plan["searches"] or [query]
+    searches = combined["searches"] or [query]
     evaluation: dict = {}
     attempt = 0
 
@@ -162,7 +157,7 @@ async def _run_pipeline(
             "queries": searches,
         })
 
-        fetched = await fetch_all(searches, classification["query_type"], all_drugs)
+        fetched = await fetch_all(searches, combined["query_type"], all_drugs)
 
         # Deduplicate PubMed by PMID before accumulating
         existing_pmids = {a.get("pmid") for a in accumulated["pubmed"] if isinstance(a, dict)}
@@ -202,23 +197,45 @@ async def _run_pipeline(
     await _emit("synthesizing", {"status": "Synthesizing final answer…"})
     india_ctx = get_india_context(state)
     result = await synthesize(
-        query, accumulated, classification["query_type"], patient_context, india_ctx
+        query, accumulated, combined["query_type"], patient_context, india_ctx
     )
 
     # ------------------------------------------------------------------
-    # Stage 8: Cache storage
+    # Stage 8: Faithfulness + contradiction checks
+    # ------------------------------------------------------------------
+    faithfulness = await check_faithfulness(
+        retrieved_chunks=accumulated.get("pubmed", []),
+        generated_answer=str(result.get("conditions", [])),
+    )
+    result["faithfulness_score"] = faithfulness.get("faithfulness_score", 0.5)
+    result["faithfulness_verdict"] = faithfulness.get("verdict", "unverifiable")
+
+    if faithfulness.get("faithfulness_score", 1.0) < 0.4:
+        result["reliability_warning"] = (
+            "Some claims may not be fully supported by retrieved evidence. "
+            "Please verify with a doctor."
+        )
+
+    contradiction_check = await check_contradictions(query, result)
+    if contradiction_check.get("contradictions_found"):
+        result["contradictions"] = contradiction_check.get("contradictions", [])
+
+    # ------------------------------------------------------------------
+    # Stage 9: Cache storage
     # ------------------------------------------------------------------
     source_type = "pubmed" if accumulated["pubmed"] else "general"
     store_result(query, json.dumps(result), source_type)
 
     result["metadata"] = {
-        "query_type": classification["query_type"],
-        "classification_confidence": classification["confidence"],
+        "query_type": combined["query_type"],
+        "classification_confidence": combined["confidence"],
         "sources_consulted": accumulated["total_sources"],
         "pubmed_articles": len(accumulated["pubmed"]),
         "openfda_records": len(accumulated["openfda"]),
         "retrieval_attempts": attempt,
         "final_confidence_score": evaluation.get("confidence_score", 0),
+        "faithfulness_score": result.get("faithfulness_score", 0.5),
+        "faithfulness_verdict": result.get("faithfulness_verdict", "unverifiable"),
         "cached": False,
     }
 

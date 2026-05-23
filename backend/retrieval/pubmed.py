@@ -2,6 +2,7 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
+import re
 import xml.etree.ElementTree as ET
 import httpx
 from config import MAX_SEARCH_RESULTS, SOURCE_WEIGHTS
@@ -18,7 +19,6 @@ async def search_pubmed(query: str, max_results: int | None = None) -> list[dict
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
-            # Step 1: get PMIDs ranked by relevance
             search_resp = await client.get(ESEARCH_URL, params={
                 "db": "pubmed",
                 "term": query,
@@ -32,7 +32,6 @@ async def search_pubmed(query: str, max_results: int | None = None) -> list[dict
             if not pmids:
                 return []
 
-            # Step 2: fetch full abstracts for those PMIDs
             fetch_resp = await client.get(EFETCH_URL, params={
                 "db": "pubmed",
                 "id": ",".join(pmids),
@@ -46,14 +45,54 @@ async def search_pubmed(query: str, max_results: int | None = None) -> list[dict
         return [{"error": str(e), "source": "PubMed"}]
 
 
+def _chunk_abstract(abstract: str, pmid: str, title: str) -> list[dict]:
+    """
+    Split abstract into sentence-level chunks with 1-sentence overlap.
+    Each chunk is more precise for retrieval than a full abstract.
+    For short abstracts (≤3 sentences), keep as a single chunk.
+    """
+    sentences = re.split(r'(?<=[.!?])\s+', abstract.strip())
+    sentences = [s.strip() for s in sentences if len(s.strip()) > 30]
+
+    if len(sentences) <= 3:
+        return [{
+            "text": abstract,
+            "abstract": abstract,
+            "pmid": pmid,
+            "title": title,
+            "chunk_id": f"{pmid}_0",
+        }]
+
+    chunks = []
+    for i in range(len(sentences) - 1):
+        chunk_text = " ".join(sentences[max(0, i - 1):i + 2])
+        chunks.append({
+            "text": chunk_text,
+            "abstract": chunk_text,
+            "pmid": pmid,
+            "title": title,
+            "chunk_id": f"{pmid}_{i}",
+        })
+
+    return chunks
+
+
 def _parse_pubmed_xml(xml_text: str) -> list[dict]:
+    """Parse PubMed XML response into article dicts, with sentence-level chunks.
+
+    Returns one record per article (deduped by PMID). Each record carries the
+    full abstract for synthesis and a `chunks` list for fine-grained retrieval
+    and faithfulness checking.
+    """
+    seen_pmids: set[str] = set()
     results = []
     try:
         root = ET.fromstring(xml_text)
         for article_node in root.findall(".//PubmedArticle"):
             try:
                 record = _parse_article(article_node)
-                if record:
+                if record and record["pmid"] not in seen_pmids:
+                    seen_pmids.add(record["pmid"])
                     results.append(record)
             except Exception:
                 continue
@@ -76,11 +115,12 @@ def _parse_article(node) -> dict | None:
         abstract = "No abstract available"
     abstract = abstract[:ABSTRACT_MAX_CHARS]
 
-    # Year: prefer <Year>, fall back to MedlineDate (first 4 chars)
     year_el = node.find(".//PubDate/Year")
     if year_el is None:
         year_el = node.find(".//PubDate/MedlineDate")
     year = (year_el.text or "")[:4] if year_el is not None else "unknown"
+
+    chunks = _chunk_abstract(abstract, pmid, title)
 
     return {
         "title": title,
@@ -90,4 +130,5 @@ def _parse_article(node) -> dict | None:
         "source": "PubMed",
         "url": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
         "trust_weight": SOURCE_WEIGHTS.get("PubMed", 8),
+        "chunks": chunks,
     }

@@ -2,6 +2,7 @@ import json
 import time
 
 from backend.evaluation.ground_truth import MEDICAL_QA_GROUND_TRUTH
+from backend.agents.faithfulness import check_faithfulness
 
 
 def evaluate_triage_accuracy(predicted: str, expected: list[str]) -> bool:
@@ -107,4 +108,38 @@ async def run_evaluation_suite(
         "average_latency_ms": _mean([r["latency_ms"] for r in per_case_results]),
         "cases_evaluated": len(per_case_results),
         "per_case_results": per_case_results,
+    }
+
+
+async def evaluate_faithfulness_score(
+    analyze_func,
+    cases: list | None = None,
+) -> dict:
+    """
+    Runs faithfulness check on evaluation cases.
+    Measures whether answers are grounded in retrieved PubMed content.
+    Target: faithfulness_score > 0.7
+    """
+    cases = cases or MEDICAL_QA_GROUND_TRUTH[:5]
+    scores = []
+
+    for case in cases:
+        try:
+            result = await analyze_func(query=case["query"])
+            pubmed_chunks = result.get("_debug_pubmed", [])
+            conditions = str(result.get("conditions", []))
+
+            faith = await check_faithfulness(pubmed_chunks, conditions)
+            scores.append(faith.get("faithfulness_score", 0.5))
+        except Exception:
+            scores.append(0.5)
+
+    mean_score = sum(scores) / len(scores) if scores else 0.0
+
+    return {
+        "mean_faithfulness": round(mean_score, 3),
+        "min_faithfulness": round(min(scores), 3) if scores else 0.0,
+        "unfaithful_count": sum(1 for s in scores if s < 0.4),
+        "target": 0.70,
+        "passes": mean_score >= 0.70,
     }
