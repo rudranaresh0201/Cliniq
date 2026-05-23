@@ -47,7 +47,7 @@ function AnimatedBackground() {
         position: 'fixed',
         inset: 0,
         zIndex: 0,
-        background: 'linear-gradient(135deg, #0a0f1a 0%, #0d1f1a 50%, #0a0f1a 100%)',
+        background: '#080B14',
         overflow: 'hidden',
       }}
     >
@@ -55,19 +55,19 @@ function AnimatedBackground() {
       <div style={{
         position: 'absolute', top: '20%', left: '10%',
         width: 400, height: 400, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(255,149,0,0.15) 0%, transparent 70%)',
         animation: 'floatUp 8s ease-in-out infinite',
       }} />
       <div style={{
         position: 'absolute', top: '60%', right: '10%',
         width: 300, height: 300, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(6,182,212,0.1) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(6,214,160,0.12) 0%, transparent 70%)',
         animation: 'floatUp 10s ease-in-out infinite reverse',
       }} />
       <div style={{
         position: 'absolute', top: '40%', left: '50%',
         width: 500, height: 500, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(16,185,129,0.05) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%)',
         animation: 'floatUp 12s ease-in-out infinite',
       }} />
 
@@ -77,7 +77,7 @@ function AnimatedBackground() {
           position: 'absolute',
           inset: 0,
           backgroundImage:
-            'linear-gradient(rgba(16,185,129,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.04) 1px, transparent 1px)',
+            'linear-gradient(rgba(245,158,11,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.03) 1px, transparent 1px)',
           backgroundSize: '60px 60px',
         }}
       />
@@ -93,11 +93,11 @@ function HeroSection() {
         <span
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
           style={{
-            background: 'rgba(16,185,129,0.1)',
-            border: '1px solid rgba(16,185,129,0.35)',
-            color: 'rgba(16,185,129,0.9)',
+            background: 'rgba(255,149,0,0.08)',
+            border: '1px solid rgba(255,149,0,0.4)',
+            color: '#FF9500',
             backdropFilter: 'blur(10px)',
-            boxShadow: '0 0 20px rgba(16,185,129,0.15)',
+            boxShadow: '0 0 20px rgba(255,149,0,0.2)',
           }}
         >
           🇮🇳 Built for India
@@ -122,7 +122,7 @@ function HeroSection() {
           You Can{' '}
           <span
             style={{
-              background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
+              background: 'linear-gradient(135deg, #FF9500 0%, #06D6A0 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
@@ -131,7 +131,7 @@ function HeroSection() {
             Trust
           </span>
         </h2>
-        <p style={{ color: '#94a3b8', fontSize: '1.125rem', fontWeight: 400 }}>
+        <p style={{ color: '#94A3B8', fontSize: '1.125rem', fontWeight: 400 }}>
           AI-powered clinical reasoning for 1.4 billion Indians
         </p>
       </div>
@@ -144,9 +144,9 @@ function HeroSection() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold animate-fade-in-up"
             style={{
               background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,149,0,0.25)',
               backdropFilter: 'blur(10px)',
-              color: '#e2e8f0',
+              color: '#ffffff',
               animationDelay: `${i * 0.1 + 0.2}s`,
               opacity: 0,
             }}
@@ -176,16 +176,13 @@ function HeroSection() {
                 fontFamily: 'Sora, sans-serif',
                 fontWeight: 700,
                 fontSize: '1.25rem',
-                background: 'linear-gradient(135deg, #10b981, #06b6d4)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
+                color: '#FF9500',
                 margin: 0,
               }}
             >
               {value}
             </p>
-            <p style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 500, marginTop: '2px', lineHeight: 1.3 }}>
+            <p style={{ fontSize: '0.7rem', color: '#94A3B8', fontWeight: 500, marginTop: '2px', lineHeight: 1.3 }}>
               {label}
             </p>
           </div>
@@ -218,8 +215,8 @@ export default function App() {
       <nav
         className="relative z-10"
         style={{
-          background: 'rgba(10,15,26,0.8)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          background: '#080B14',
+          borderBottom: '1px solid rgba(255,149,0,0.15)',
           backdropFilter: 'blur(20px)',
         }}
       >
@@ -233,9 +230,9 @@ export default function App() {
                   onClick={() => setActiveTab(tab.id)}
                   className="flex items-center px-4 py-3.5 text-sm font-bold transition-all border-b-2 -mb-px"
                   style={{
-                    borderColor: active ? '#10b981' : 'transparent',
-                    color: active ? '#10b981' : 'rgba(255,255,255,0.4)',
-                    boxShadow: active ? '0 2px 12px rgba(16,185,129,0.2)' : 'none',
+                    borderColor: active ? '#FF9500' : 'transparent',
+                    color: active ? '#FF9500' : '#94A3B8',
+                    boxShadow: active ? '0 2px 16px rgba(255,149,0,0.25)' : 'none',
                   }}
                 >
                   {tab.label}
@@ -266,7 +263,7 @@ export default function App() {
                       aria-checked={streamMode}
                       onClick={() => setStreamMode((v) => !v)}
                       className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none"
-                      style={{ background: streamMode ? '#10b981' : 'rgba(255,255,255,0.15)' }}
+                      style={{ background: streamMode ? '#FF9500' : 'rgba(255,255,255,0.15)' }}
                     >
                       <span
                         className="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform"
@@ -461,9 +458,9 @@ export default function App() {
       <footer
         className="py-6 text-center text-xs relative z-10"
         style={{
-          color: 'rgba(255,255,255,0.25)',
+          color: '#475569',
           borderTop: '1px solid rgba(255,255,255,0.06)',
-          background: 'rgba(10,15,26,0.8)',
+          background: '#080B14',
         }}
       >
         ClinIQ © {new Date().getFullYear()} — For informational purposes only. Not a substitute for professional medical advice.
