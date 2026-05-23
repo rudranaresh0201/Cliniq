@@ -1,9 +1,10 @@
-import { useState, useRef, type FormEvent, type KeyboardEvent } from 'react';
+import { useState, useRef, useEffect, type FormEvent, type KeyboardEvent } from 'react';
 import type { AnalyzeRequest } from '../types';
 
 interface Props {
   onSubmit: (request: AnalyzeRequest) => void;
   loading: boolean;
+  prefillQuery?: string;
 }
 
 const VOICE_LANGS = [
@@ -28,9 +29,13 @@ const GLASS_INPUT: React.CSSProperties = {
   transition: 'border-color 0.2s, box-shadow 0.2s',
 };
 
-export default function SymptomForm({ onSubmit, loading }: Props) {
+export default function SymptomForm({ onSubmit, loading, prefillQuery }: Props) {
   const [patientId, setPatientId]     = useState('');
   const [query, setQuery]             = useState('');
+
+  useEffect(() => {
+    if (prefillQuery) setQuery(prefillQuery);
+  }, [prefillQuery]);
   const [age, setAge]                 = useState('');
   const [gender, setGender]           = useState('');
   const [state, setState]             = useState('Maharashtra');

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Lottie from 'lottie-react';
 import Header from './components/Header';
 import SymptomForm from './components/SymptomForm';
 import TriageCard from './components/TriageCard';
@@ -27,180 +28,207 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 
 const STATS = [
-  { value: '35M+',  label: 'Medical Papers' },
-  { value: '10',    label: 'Indian Languages' },
-  { value: 'Live',  label: 'PubMed Citations' },
-  { value: '< 5s',  label: 'Response Time' },
+  { value: '35M+', label: 'Medical Papers'    },
+  { value: '10',   label: 'Indian Languages'  },
+  { value: 'Live', label: 'PubMed Citations'  },
+  { value: '< 5s', label: 'Response Time'     },
 ];
 
 const FEATURES = [
   { icon: '🔬', label: 'PubMed Citations' },
-  { icon: '🇮🇳', label: 'India-Aware' },
+  { icon: '🇮🇳', label: 'India-Aware'     },
   { icon: '⚡', label: 'Instant Analysis' },
-  { icon: '📚', label: '35M+ Papers' },
+  { icon: '📚', label: '35M+ Papers'      },
+];
+
+const MEDICAL_ANIMATION_URL = 'https://assets2.lottiefiles.com/packages/lf20_5njp3vgg.json';
+
+const HEADLINES = [
+  'Medical Intelligence You Can Trust',
+  "India's Clinical AI Assistant",
+  'Powered by 35M+ Medical Papers',
+  'Built for 1.4 Billion Indians',
+];
+
+const SAMPLE_QUERIES = [
+  { label: '🤒 Fever + Rash',     query: 'I have fever, body pain and rash for 3 days, Mumbai'        },
+  { label: '💊 Drug Interaction', query: 'Can I take ibuprofen with warfarin?'                         },
+  { label: '🧒 Child Fever',      query: 'My 6 year old child has fever and vomiting for 2 days'       },
+  { label: '🫁 TB Symptoms',      query: 'Cough for 3 weeks, weight loss, night sweats, low grade fever'},
+  { label: '🦟 Malaria Check',    query: 'Fever with chills every alternate day, body ache, West Bengal'},
 ];
 
 function AnimatedBackground() {
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 0,
-        background: '#080B14',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Floating orbs */}
+    <div style={{ position: 'fixed', inset: 0, zIndex: 0, background: '#080B14', overflow: 'hidden' }}>
       <div style={{
-        position: 'absolute', top: '20%', left: '10%',
-        width: 400, height: 400, borderRadius: '50%',
+        position: 'absolute', top: '20%', left: '10%', width: 400, height: 400, borderRadius: '50%',
         background: 'radial-gradient(circle, rgba(255,149,0,0.15) 0%, transparent 70%)',
         animation: 'floatUp 8s ease-in-out infinite',
       }} />
       <div style={{
-        position: 'absolute', top: '60%', right: '10%',
-        width: 300, height: 300, borderRadius: '50%',
+        position: 'absolute', top: '60%', right: '10%', width: 300, height: 300, borderRadius: '50%',
         background: 'radial-gradient(circle, rgba(6,214,160,0.12) 0%, transparent 70%)',
         animation: 'floatUp 10s ease-in-out infinite reverse',
       }} />
       <div style={{
-        position: 'absolute', top: '40%', left: '50%',
-        width: 500, height: 500, borderRadius: '50%',
+        position: 'absolute', top: '40%', left: '50%', width: 500, height: 500, borderRadius: '50%',
         background: 'radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%)',
         animation: 'floatUp 12s ease-in-out infinite',
       }} />
-
-      {/* Subtle grid mesh */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundImage:
-            'linear-gradient(rgba(245,158,11,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.03) 1px, transparent 1px)',
-          backgroundSize: '60px 60px',
-        }}
-      />
+      <div style={{
+        position: 'absolute', inset: 0,
+        backgroundImage: 'linear-gradient(rgba(245,158,11,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.03) 1px, transparent 1px)',
+        backgroundSize: '60px 60px',
+      }} />
     </div>
   );
 }
 
 function HeroSection() {
+  const [animationData, setAnimationData] = useState<any>(null);
+  const [headlineIndex, setHeadlineIndex] = useState(0);
+  const [displayed, setDisplayed]         = useState('');
+  const [typing, setTyping]               = useState(true);
+
+  useEffect(() => {
+    fetch(MEDICAL_ANIMATION_URL)
+      .then(r => r.json())
+      .then(setAnimationData)
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const full = HEADLINES[headlineIndex];
+    if (typing) {
+      if (displayed.length < full.length) {
+        const t = setTimeout(() => setDisplayed(full.slice(0, displayed.length + 1)), 50);
+        return () => clearTimeout(t);
+      } else {
+        const t = setTimeout(() => setTyping(false), 2000);
+        return () => clearTimeout(t);
+      }
+    } else {
+      if (displayed.length > 0) {
+        const t = setTimeout(() => setDisplayed(displayed.slice(0, -1)), 30);
+        return () => clearTimeout(t);
+      } else {
+        setHeadlineIndex((i) => (i + 1) % HEADLINES.length);
+        setTyping(true);
+      }
+    }
+  }, [displayed, typing, headlineIndex]);
+
   return (
-    <div className="text-center mb-10 space-y-7 animate-fade-in-up">
-      {/* Pill badge */}
-      <div className="flex justify-center">
-        <span
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
-          style={{
-            background: 'rgba(255,149,0,0.08)',
-            border: '1px solid rgba(255,149,0,0.4)',
-            color: '#FF9500',
-            backdropFilter: 'blur(10px)',
-            boxShadow: '0 0 20px rgba(255,149,0,0.2)',
-          }}
-        >
-          🇮🇳 Built for India
-        </span>
-      </div>
-
-      {/* Headline */}
-      <div className="space-y-3">
-        <h2
-          style={{
-            fontFamily: 'Sora, sans-serif',
-            fontWeight: 800,
-            fontSize: 'clamp(2.5rem, 6vw, 4.5rem)',
-            lineHeight: 1.1,
-            letterSpacing: '-0.02em',
-            color: '#ffffff',
-            margin: 0,
-          }}
-        >
-          Medical Intelligence
-          <br />
-          You Can{' '}
-          <span
-            style={{
-              background: 'linear-gradient(135deg, #FF9500 0%, #06D6A0 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}
-          >
-            Trust
-          </span>
-        </h2>
-        <p style={{ color: '#94A3B8', fontSize: '1.125rem', fontWeight: 400 }}>
-          AI-powered clinical reasoning for 1.4 billion Indians
-        </p>
-      </div>
-
-      {/* Feature pills */}
-      <div className="flex flex-wrap justify-center gap-3">
-        {FEATURES.map(({ icon, label }, i) => (
-          <span
-            key={label}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold animate-fade-in-up"
-            style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,149,0,0.25)',
-              backdropFilter: 'blur(10px)',
-              color: '#ffffff',
-              animationDelay: `${i * 0.1 + 0.2}s`,
-              opacity: 0,
-            }}
-          >
-            <span>{icon}</span>
-            {label}
-          </span>
-        ))}
-      </div>
-
-      {/* Stats row */}
-      <div className="grid grid-cols-4 gap-3 max-w-xl mx-auto">
-        {STATS.map(({ value, label }, i) => (
-          <div
-            key={label}
-            className="rounded-2xl p-4 text-center animate-fade-in-up"
-            style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              backdropFilter: 'blur(20px)',
-              animationDelay: `${0.3 + i * 0.08}s`,
-              opacity: 0,
-            }}
-          >
-            <p
+    <div className="mb-10 animate-fade-in-up">
+      <div className="flex items-center gap-8">
+        {/* Left side */}
+        <div className="flex-1 space-y-7">
+          {/* Pill badge */}
+          <div className="flex">
+            <span
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
               style={{
-                fontFamily: 'Sora, sans-serif',
-                fontWeight: 700,
-                fontSize: '1.25rem',
+                background: 'rgba(255,149,0,0.08)',
+                border: '1px solid rgba(255,149,0,0.4)',
                 color: '#FF9500',
-                margin: 0,
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 0 20px rgba(255,149,0,0.2)',
               }}
             >
-              {value}
-            </p>
-            <p style={{ fontSize: '0.7rem', color: '#94A3B8', fontWeight: 500, marginTop: '2px', lineHeight: 1.3 }}>
-              {label}
+              🇮🇳 Built for India
+            </span>
+          </div>
+
+          {/* Typing headline */}
+          <div className="space-y-3">
+            <h2
+              style={{
+                fontFamily: 'Sora, sans-serif',
+                fontWeight: 800,
+                fontSize: 'clamp(2rem, 5vw, 3.5rem)',
+                lineHeight: 1.1,
+                letterSpacing: '-0.02em',
+                color: '#ffffff',
+                margin: 0,
+                minHeight: '1.2em',
+              }}
+            >
+              {displayed}
+              <span className="animate-pulse" style={{ color: '#FF9500' }}>|</span>
+            </h2>
+            <p style={{ color: '#94A3B8', fontSize: '1.125rem', fontWeight: 400 }}>
+              AI-powered clinical reasoning for 1.4 billion Indians
             </p>
           </div>
-        ))}
+
+          {/* Feature pills */}
+          <div className="flex flex-wrap gap-3">
+            {FEATURES.map(({ icon, label }, i) => (
+              <span
+                key={label}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold animate-fade-in-up"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,149,0,0.25)',
+                  backdropFilter: 'blur(10px)',
+                  color: '#ffffff',
+                  animationDelay: `${i * 0.1 + 0.2}s`,
+                  opacity: 0,
+                }}
+              >
+                <span>{icon}</span>
+                {label}
+              </span>
+            ))}
+          </div>
+
+          {/* Stats row */}
+          <div className="grid grid-cols-4 gap-3 max-w-xl">
+            {STATS.map(({ value, label }, i) => (
+              <div
+                key={label}
+                className="rounded-2xl p-4 text-center animate-fade-in-up"
+                style={{
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  backdropFilter: 'blur(20px)',
+                  animationDelay: `${0.3 + i * 0.08}s`,
+                  opacity: 0,
+                }}
+              >
+                <p style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: '1.25rem', color: '#FF9500', margin: 0 }}>
+                  {value}
+                </p>
+                <p style={{ fontSize: '0.7rem', color: '#94A3B8', fontWeight: 500, marginTop: '2px', lineHeight: 1.3 }}>
+                  {label}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right side: Lottie animation */}
+        <div className="hidden md:flex items-center justify-center w-80">
+          {animationData && (
+            <Lottie animationData={animationData} loop={true} style={{ width: 300, height: 300 }} />
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<Tab>('analyze');
-  const [streamMode, setStreamMode] = useState(false);
+  const [activeTab, setActiveTab]     = useState<Tab>('analyze');
+  const [streamMode, setStreamMode]   = useState(false);
+  const [prefillQuery, setPrefillQuery] = useState('');
 
   const plain  = useAnalyze();
   const stream = useAnalyzeStream();
 
-  const loading = streamMode ? stream.loading  : plain.loading;
-  const error   = streamMode ? stream.error    : plain.error;
+  const loading = streamMode ? stream.loading : plain.loading;
+  const error   = streamMode ? stream.error   : plain.error;
   const result: AnalyzeResponse | null = streamMode ? stream.result : plain.result;
 
   const reset = () => { plain.reset(); stream.reset(); };
@@ -214,11 +242,7 @@ export default function App() {
       {/* Tabs */}
       <nav
         className="relative z-10"
-        style={{
-          background: '#080B14',
-          borderBottom: '1px solid rgba(255,149,0,0.15)',
-          backdropFilter: 'blur(20px)',
-        }}
+        style={{ background: '#080B14', borderBottom: '1px solid rgba(255,149,0,0.15)', backdropFilter: 'blur(20px)' }}
       >
         <div className="max-w-3xl mx-auto px-4">
           <div className="flex gap-1">
@@ -244,19 +268,36 @@ export default function App() {
       </nav>
 
       <main className="flex-1 relative z-10">
-        {/* Analyze tab */}
         {activeTab === 'analyze' && (
           <div className="max-w-3xl mx-auto w-full px-4 py-10">
             {!loading && !result && (
               <div className="space-y-6">
                 <HeroSection />
 
+                {/* Sample Queries */}
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                  {SAMPLE_QUERIES.map((s, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setPrefillQuery(s.query)}
+                      className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors"
+                      style={{
+                        border: '1px solid rgba(255,149,0,0.3)',
+                        color: '#FFD580',
+                        background: 'transparent',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,149,0,0.1)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+
                 {/* Stream mode toggle */}
                 <div className="flex justify-end">
                   <label className="inline-flex items-center gap-2 cursor-pointer select-none">
-                    <span className="text-xs font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                      Stream mode
-                    </span>
+                    <span className="text-xs font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>Stream mode</span>
                     <button
                       type="button"
                       role="switch"
@@ -287,21 +328,19 @@ export default function App() {
                     }
                   }}
                   loading={loading}
+                  prefillQuery={prefillQuery}
                 />
 
                 {error && (
                   <div
                     className="rounded-xl px-5 py-4 flex items-start gap-3 animate-fade-in-up"
-                    style={{
-                      background: 'rgba(239,68,68,0.1)',
-                      border: '1px solid rgba(239,68,68,0.3)',
-                    }}
+                    style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}
                   >
                     <span className="text-red-400 text-lg shrink-0">✕</span>
                     <div>
                       <p className="font-bold text-red-400 text-sm">Something went wrong</p>
                       <p className="text-red-300 text-sm mt-0.5">{error}</p>
-                      <p className="text-red-400/60 text-xs mt-1">
+                      <p className="text-xs mt-1" style={{ color: 'rgba(239,68,68,0.6)' }}>
                         Make sure the backend is running at http://127.0.0.1:8000
                       </p>
                     </div>
@@ -322,28 +361,41 @@ export default function App() {
 
             {result && !loading && (
               <div className="space-y-5">
-                <button
-                  onClick={reset}
-                  className="inline-flex items-center gap-2 text-sm font-semibold transition-colors group animate-fade-in-up"
-                  style={{ color: 'rgba(255,255,255,0.4)' }}
-                >
-                  <svg
-                    className="w-4 h-4 transition-transform group-hover:-translate-x-0.5"
-                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                {/* New search + Share */}
+                <div className="flex items-center gap-3 animate-fade-in-up">
+                  <button
+                    onClick={reset}
+                    className="inline-flex items-center gap-2 text-sm font-semibold transition-colors group"
+                    style={{ color: 'rgba(255,255,255,0.4)' }}
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                  </svg>
-                  New search
-                </button>
+                    <svg className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    New search
+                  </button>
+                  <button
+                    onClick={() => {
+                      const text = `ClinIQ Analysis:\nTriage: ${result.triage}\nTop condition: ${result.conditions[0]?.name} (${result.conditions[0]?.confidence}%)\n\nGet your analysis: https://cliniq-opal.vercel.app`;
+                      navigator.clipboard.writeText(text);
+                      alert('Copied to clipboard!');
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-colors"
+                    style={{
+                      border: '1px solid rgba(255,149,0,0.3)',
+                      color: '#FFD580',
+                      background: 'transparent',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,149,0,0.1)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    📤 Share Result
+                  </button>
+                </div>
 
                 {result.error && (
                   <div
                     className="rounded-xl px-4 py-3 text-sm animate-fade-in-up"
-                    style={{
-                      background: 'rgba(234,179,8,0.1)',
-                      border: '1px solid rgba(234,179,8,0.25)',
-                      color: '#fde68a',
-                    }}
+                    style={{ background: 'rgba(234,179,8,0.1)', border: '1px solid rgba(234,179,8,0.25)', color: '#fde68a' }}
                   >
                     {result.error}
                   </div>
@@ -404,14 +456,11 @@ export default function App() {
                   <RedFlags redFlags={result.red_flags || []} />
                 </div>
 
-                {result.dangerous_differentials &&
-                  result.dangerous_differentials.length > 0 && (
-                    <div className="animate-fade-in-up stagger-5">
-                      <DangerousDifferentials
-                        differentials={result.dangerous_differentials}
-                      />
-                    </div>
-                  )}
+                {result.dangerous_differentials && result.dangerous_differentials.length > 0 && (
+                  <div className="animate-fade-in-up stagger-5">
+                    <DangerousDifferentials differentials={result.dangerous_differentials} />
+                  </div>
+                )}
 
                 <div className="animate-fade-in-up stagger-5">
                   <DrugSafety drugSafety={result.drug_safety} />
@@ -420,15 +469,9 @@ export default function App() {
                 {result.follow_up_questions && result.follow_up_questions.length > 0 && (
                   <div
                     className="rounded-2xl p-5 animate-fade-in-up stagger-6"
-                    style={{
-                      background: 'rgba(255,255,255,0.04)',
-                      border: '1px solid rgba(255,255,255,0.08)',
-                      backdropFilter: 'blur(20px)',
-                    }}
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(20px)' }}
                   >
-                    <div className="flex items-center gap-2 mb-3">
-                      <h3 className="font-bold" style={{ color: '#f1f5f9' }}>Follow-up Questions</h3>
-                    </div>
+                    <h3 className="font-bold mb-3" style={{ color: '#f1f5f9' }}>Follow-up Questions</h3>
                     <ul className="space-y-2">
                       {result.follow_up_questions.map((q, i) => (
                         <li key={i} className="text-sm flex items-start gap-2" style={{ color: '#94a3b8' }}>
@@ -448,22 +491,26 @@ export default function App() {
           </div>
         )}
 
-        {/* Dashboard tab */}
         {activeTab === 'dashboard' && <Dashboard />}
-
-        {/* Reports tab */}
         {activeTab === 'reports' && <Reports />}
       </main>
 
-      <footer
-        className="py-6 text-center text-xs relative z-10"
-        style={{
-          color: '#475569',
-          borderTop: '1px solid rgba(255,255,255,0.06)',
-          background: '#080B14',
-        }}
-      >
-        ClinIQ © {new Date().getFullYear()} — For informational purposes only. Not a substitute for professional medical advice.
+      <footer className="py-8 relative z-10" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', background: '#080B14' }}>
+        <div className="max-w-5xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="font-bold" style={{ color: '#FF9500' }}>ClinIQ</span>
+            <span className="text-sm" style={{ color: '#475569' }}>© 2026 — Medical Intelligence for India</span>
+          </div>
+          <div className="flex items-center gap-4 text-sm" style={{ color: '#475569' }}>
+            <a href="https://github.com/rudranaresh0201/Cliniq" target="_blank" rel="noopener noreferrer"
+              className="hover:text-white transition-colors">GitHub</a>
+            <span>•</span>
+            <span>Not a substitute for medical advice</span>
+            <span>•</span>
+            <a href="https://rudra201-cliniq-backend.hf.space/docs" target="_blank" rel="noopener noreferrer"
+              className="hover:text-white transition-colors">API Docs</a>
+          </div>
+        </div>
       </footer>
     </div>
   );
