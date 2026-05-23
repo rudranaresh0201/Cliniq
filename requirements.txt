@@ -10,4 +10,5 @@ supabase
 PyMuPDF
 rank-bm25
 google-generativeai
+python-multipart
 # ragas  # optional evaluation framework
