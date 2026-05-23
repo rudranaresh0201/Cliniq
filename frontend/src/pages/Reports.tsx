@@ -344,6 +344,8 @@ const GLASS_INPUT: React.CSSProperties = {
   fontFamily: 'Sora, Inter, sans-serif',
 };
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export default function Reports() {
   const [dragging, setDragging] = useState(false);
   const [file, setFile]         = useState<File | null>(null);
@@ -377,7 +379,7 @@ export default function Reports() {
     form.append('file', file);
     if (userId.trim()) form.append('user_id', userId.trim());
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/reports/upload', { method: 'POST', body: form });
+      const res = await fetch(`${BASE_URL}/api/reports/upload`, { method: 'POST', body: form });
       if (!res.ok) { const data = await res.json().catch(() => ({})); throw new Error(data.detail || `Server error ${res.status}`); }
       setResult(await res.json());
     } catch (err) {

@@ -144,6 +144,8 @@ function EpisodeCard({ ep, index }: { ep: Episode; index: number }) {
   );
 }
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export default function Dashboard() {
   const [userId, setUserId]     = useState('');
   const [inputVal, setInputVal] = useState('');
@@ -160,8 +162,8 @@ export default function Dashboard() {
 
     try {
       const [histRes, tlRes] = await Promise.allSettled([
-        fetch(`http://127.0.0.1:8000/api/patient/${id}/history`),
-        fetch(`http://127.0.0.1:8000/api/patient/${id}/timeline`),
+        fetch(`${BASE_URL}/api/patient/${id}/history`),
+        fetch(`${BASE_URL}/api/patient/${id}/timeline`),
       ]);
 
       if (histRes.status === 'fulfilled' && histRes.value.ok) {
@@ -210,6 +212,9 @@ export default function Dashboard() {
         <label className="block text-sm font-bold mb-2" style={{ color: 'rgba(255,255,255,0.6)' }}>
           Patient ID
         </label>
+        <p className="text-xs mb-2" style={{ color: 'rgba(251,191,36,0.7)' }}>
+          ⚠️ Note: Patient history is session-based on free hosting. Use same session to view your episodes.
+        </p>
         <div className="flex gap-3">
           <input
             type="text"
