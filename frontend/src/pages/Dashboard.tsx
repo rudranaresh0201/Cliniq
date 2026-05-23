@@ -21,9 +21,9 @@ interface TimelineAnalysis {
 
 const TRIAGE_META: Record<string, { dot: string; pillBg: string; pillText: string; pillBorder: string }> = {
   EMERGENCY:     { dot: '#ef4444', pillBg: 'rgba(239,68,68,0.15)',    pillText: '#fca5a5', pillBorder: 'rgba(239,68,68,0.3)'    },
-  URGENT:        { dot: '#f97316', pillBg: 'rgba(249,115,22,0.15)',   pillText: '#fdba74', pillBorder: 'rgba(249,115,22,0.3)'   },
-  ROUTINE:       { dot: '#10b981', pillBg: 'rgba(16,185,129,0.15)',   pillText: '#6ee7b7', pillBorder: 'rgba(16,185,129,0.3)'   },
-  INFORMATIONAL: { dot: '#6366f1', pillBg: 'rgba(99,102,241,0.15)',   pillText: '#a5b4fc', pillBorder: 'rgba(99,102,241,0.3)'   },
+  URGENT:        { dot: '#FF9500', pillBg: 'rgba(255,149,0,0.15)',    pillText: '#FFD580', pillBorder: 'rgba(255,149,0,0.3)'    },
+  ROUTINE:       { dot: '#06D6A0', pillBg: 'rgba(6,214,160,0.15)',    pillText: '#6ee7b7', pillBorder: 'rgba(6,214,160,0.3)'    },
+  INFORMATIONAL: { dot: '#7C3AED', pillBg: 'rgba(124,58,237,0.15)',   pillText: '#c4b5fd', pillBorder: 'rgba(124,58,237,0.3)'   },
 };
 
 const TREND_ICON: Record<string, string> = {
@@ -41,9 +41,8 @@ const CONDITION_COLORS = [
 ];
 
 const GLASS: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.04)',
+  background: '#0F1623',
   border: '1px solid rgba(255,255,255,0.08)',
-  backdropFilter: 'blur(20px)',
   borderRadius: '16px',
 };
 
@@ -227,8 +226,8 @@ export default function Dashboard() {
               fontFamily: 'Sora, Inter, sans-serif',
             }}
             onFocus={(e) => {
-              e.target.style.borderColor = 'rgba(16,185,129,0.5)';
-              e.target.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.1)';
+              e.target.style.borderColor = 'rgba(255,149,0,0.5)';
+              e.target.style.boxShadow = '0 0 0 3px rgba(255,149,0,0.1)';
             }}
             onBlur={(e) => {
               e.target.style.borderColor = 'rgba(255,255,255,0.1)';
@@ -240,8 +239,8 @@ export default function Dashboard() {
             disabled={loading || !inputVal.trim()}
             className="px-6 py-2.5 rounded-xl text-white text-sm font-bold transition-all disabled:opacity-50"
             style={{
-              background: 'linear-gradient(135deg, #10b981, #06b6d4)',
-              boxShadow: '0 0 20px rgba(16,185,129,0.3)',
+              background: 'linear-gradient(135deg, #FF9500, #FF6B00)',
+              boxShadow: '0 0 20px rgba(255,149,0,0.3)',
               fontFamily: 'Sora, sans-serif',
             }}
           >
@@ -268,7 +267,7 @@ export default function Dashboard() {
         <div className="overflow-hidden animate-fade-in-up stagger-2" style={GLASS}>
           <div
             className="px-5 py-4 flex items-center gap-3"
-            style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.2), rgba(6,182,212,0.15))' }}
+            style={{ background: 'linear-gradient(135deg, rgba(255,149,0,0.12), rgba(255,107,0,0.08))' }}
           >
             <h2 className="font-bold" style={{ color: '#f1f5f9', fontFamily: 'Sora, sans-serif' }}>
               AI Timeline Analysis
@@ -319,14 +318,14 @@ export default function Dashboard() {
             <div
               className="rounded-xl px-4 py-3"
               style={{
-                background: 'rgba(16,185,129,0.08)',
-                border: '1px solid rgba(16,185,129,0.2)',
+                background: 'rgba(6,214,160,0.08)',
+                border: '1px solid rgba(6,214,160,0.2)',
               }}
             >
-              <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#34d399' }}>
+              <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#06D6A0' }}>
                 Recommendation
               </p>
-              <p className="text-sm" style={{ color: 'rgba(110,231,183,0.85)' }}>
+              <p className="text-sm" style={{ color: 'rgba(167,243,208,0.85)' }}>
                 {timeline.proactive_recommendation}
               </p>
             </div>
@@ -354,9 +353,9 @@ export default function Dashboard() {
             <span
               className="text-xs font-bold px-2.5 py-1 rounded-full"
               style={{
-                background: 'rgba(16,185,129,0.15)',
+                background: 'rgba(6,214,160,0.12)',
                 color: '#6ee7b7',
-                border: '1px solid rgba(16,185,129,0.25)',
+                border: '1px solid rgba(6,214,160,0.25)',
               }}
             >
               {episodes.length} episodes

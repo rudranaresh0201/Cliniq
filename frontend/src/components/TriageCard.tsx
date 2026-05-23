@@ -64,30 +64,30 @@ const triageConfig: Record<string, {
     Icon: EmergencyIcon,
   },
   URGENT: {
-    borderColor: 'rgba(249,115,22,0.4)',
-    glowColor: 'rgba(249,115,22,0.15)',
-    iconBg: 'rgba(249,115,22,0.2)',
-    accentGradient: 'linear-gradient(135deg, #f97316, #ea580c)',
+    borderColor: 'rgba(255,149,0,0.4)',
+    glowColor: 'rgba(255,149,0,0.15)',
+    iconBg: 'rgba(255,149,0,0.2)',
+    accentGradient: 'linear-gradient(135deg, #FF9500, #FF6B00)',
     label: 'Urgent',
     sub: 'See a doctor today',
     pulse: false,
     Icon: UrgentIcon,
   },
   ROUTINE: {
-    borderColor: 'rgba(16,185,129,0.4)',
-    glowColor: 'rgba(16,185,129,0.15)',
-    iconBg: 'rgba(16,185,129,0.2)',
-    accentGradient: 'linear-gradient(135deg, #10b981, #06b6d4)',
+    borderColor: 'rgba(6,214,160,0.4)',
+    glowColor: 'rgba(6,214,160,0.12)',
+    iconBg: 'rgba(6,214,160,0.18)',
+    accentGradient: 'linear-gradient(135deg, #06D6A0, #059669)',
     label: 'Routine',
     sub: 'Schedule an appointment when convenient',
     pulse: false,
     Icon: RoutineIcon,
   },
   INFORMATIONAL: {
-    borderColor: 'rgba(99,102,241,0.4)',
-    glowColor: 'rgba(99,102,241,0.15)',
-    iconBg: 'rgba(99,102,241,0.2)',
-    accentGradient: 'linear-gradient(135deg, #6366f1, #2563eb)',
+    borderColor: 'rgba(124,58,237,0.4)',
+    glowColor: 'rgba(124,58,237,0.12)',
+    iconBg: 'rgba(124,58,237,0.18)',
+    accentGradient: 'linear-gradient(135deg, #7C3AED, #5B21B6)',
     label: 'Informational',
     sub: 'General health information',
     pulse: false,
@@ -104,9 +104,8 @@ export default function TriageCard({ triage, message, cached }: Props) {
     <div
       className="w-full rounded-2xl p-6 text-white relative overflow-hidden animate-fade-in-up"
       style={{
-        background: 'rgba(255,255,255,0.04)',
+        background: '#0F1623',
         border: `1px solid ${config.borderColor}`,
-        backdropFilter: 'blur(20px)',
         boxShadow: `0 0 40px ${config.glowColor}, inset 0 1px 0 rgba(255,255,255,0.06)`,
       }}
     >

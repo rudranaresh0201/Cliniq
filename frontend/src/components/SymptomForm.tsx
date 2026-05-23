@@ -110,14 +110,13 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
       <div
         className="rounded-2xl overflow-hidden"
         style={{
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          backdropFilter: 'blur(20px)',
-          boxShadow: '0 25px 50px rgba(0,0,0,0.4)',
+          background: '#0F1623',
+          border: '1px solid rgba(255,255,255,0.08)',
+          boxShadow: '0 25px 60px rgba(0,0,0,0.6)',
         }}
       >
         {/* Gradient top border */}
-        <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, #10b981, #06b6d4, #6366f1)' }} />
+        <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, #FF9500, #06D6A0, #7C3AED)' }} />
 
         <form onSubmit={handleSubmit} className="p-7 space-y-5">
           <div className="mb-1">
@@ -144,8 +143,8 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
               placeholder="For longitudinal tracking"
               style={GLASS_INPUT}
               onFocus={(e) => {
-                e.target.style.borderColor = 'rgba(16,185,129,0.5)';
-                e.target.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.1)';
+                e.target.style.borderColor = 'rgba(255,149,0,0.5)';
+                e.target.style.boxShadow = '0 0 0 3px rgba(255,149,0,0.1)';
               }}
               onBlur={(e) => {
                 e.target.style.borderColor = 'rgba(255,255,255,0.1)';
@@ -170,7 +169,7 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
                   className="px-2.5 py-1 rounded-full text-xs font-bold transition-all"
                   style={{
                     background: voiceLang === lang.code
-                      ? 'linear-gradient(135deg,#10b981,#06b6d4)'
+                      ? 'linear-gradient(135deg,#FF9500,#FF6B00)'
                       : 'rgba(255,255,255,0.06)',
                     color: voiceLang === lang.code ? '#fff' : 'rgba(255,255,255,0.45)',
                     border: voiceLang === lang.code
@@ -196,14 +195,14 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
                   borderColor: shake
                     ? 'rgba(239,68,68,0.6)'
                     : isListening
-                    ? 'rgba(16,185,129,0.6)'
+                    ? 'rgba(255,149,0,0.6)'
                     : 'rgba(255,255,255,0.1)',
-                  boxShadow: isListening ? '0 0 0 3px rgba(16,185,129,0.1)' : 'none',
+                  boxShadow: isListening ? '0 0 0 3px rgba(255,149,0,0.1)' : 'none',
                 }}
                 onFocus={(e) => {
                   if (!shake && !isListening) {
-                    e.target.style.borderColor = 'rgba(16,185,129,0.5)';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.1)';
+                    e.target.style.borderColor = 'rgba(255,149,0,0.5)';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(255,149,0,0.1)';
                   }
                 }}
                 onBlur={(e) => {
@@ -220,7 +219,7 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
                 className="absolute bottom-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-all"
                 style={{
                   background: isListening ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.08)',
-                  border: isListening ? '1.5px solid rgba(16,185,129,0.5)' : '1.5px solid rgba(255,255,255,0.12)',
+                  border: isListening ? '1.5px solid rgba(255,149,0,0.5)' : '1.5px solid rgba(255,255,255,0.12)',
                 }}
               >
                 {isListening ? (
@@ -236,8 +235,8 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
 
             {isListening && (
               <div className="flex items-center gap-2 mt-1.5">
-                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse-dot" />
-                <span className="text-xs font-semibold" style={{ color: '#4ade80' }}>Listening…</span>
+                <span className="w-2 h-2 rounded-full animate-pulse-dot" style={{ background: '#FF9500' }} />
+                <span className="text-xs font-semibold" style={{ color: '#FF9500' }}>Listening…</span>
               </div>
             )}
           </div>
@@ -254,8 +253,8 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
                     placeholder="e.g. 34" min={1} max={120}
                     style={GLASS_INPUT}
                     onFocus={(e) => {
-                      e.target.style.borderColor = 'rgba(16,185,129,0.5)';
-                      e.target.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.1)';
+                      e.target.style.borderColor = 'rgba(255,149,0,0.5)';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(255,149,0,0.1)';
                     }}
                     onBlur={(e) => {
                       e.target.style.borderColor = 'rgba(255,255,255,0.1)';
@@ -271,18 +270,18 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
                     value={gender} onChange={(e) => setGender(e.target.value)}
                     style={{ ...GLASS_INPUT, appearance: 'none' as const, WebkitAppearance: 'none' as const }}
                     onFocus={(e) => {
-                      e.target.style.borderColor = 'rgba(16,185,129,0.5)';
-                      e.target.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.1)';
+                      e.target.style.borderColor = 'rgba(255,149,0,0.5)';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(255,149,0,0.1)';
                     }}
                     onBlur={(e) => {
                       e.target.style.borderColor = 'rgba(255,255,255,0.1)';
                       e.target.style.boxShadow = 'none';
                     }}
                   >
-                    <option value="" style={{ background: '#0d1f1a' }}>Select…</option>
-                    <option value="male" style={{ background: '#0d1f1a' }}>Male</option>
-                    <option value="female" style={{ background: '#0d1f1a' }}>Female</option>
-                    <option value="other" style={{ background: '#0d1f1a' }}>Other</option>
+                    <option value="" style={{ background: '#0F1623' }}>Select…</option>
+                    <option value="male" style={{ background: '#0F1623' }}>Male</option>
+                    <option value="female" style={{ background: '#0F1623' }}>Female</option>
+                    <option value="other" style={{ background: '#0F1623' }}>Other</option>
                   </select>
                 ),
               },
@@ -293,23 +292,23 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
                     value={state} onChange={(e) => setState(e.target.value)}
                     style={{ ...GLASS_INPUT, appearance: 'none' as const, WebkitAppearance: 'none' as const }}
                     onFocus={(e) => {
-                      e.target.style.borderColor = 'rgba(16,185,129,0.5)';
-                      e.target.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.1)';
+                      e.target.style.borderColor = 'rgba(255,149,0,0.5)';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(255,149,0,0.1)';
                     }}
                     onBlur={(e) => {
                       e.target.style.borderColor = 'rgba(255,255,255,0.1)';
                       e.target.style.boxShadow = 'none';
                     }}
                   >
-                    <option style={{ background: '#0d1f1a' }}>Maharashtra</option>
-                    <option style={{ background: '#0d1f1a' }}>Kerala</option>
-                    <option style={{ background: '#0d1f1a' }}>Delhi</option>
-                    <option style={{ background: '#0d1f1a' }}>West Bengal</option>
-                    <option style={{ background: '#0d1f1a' }}>Rajasthan</option>
-                    <option style={{ background: '#0d1f1a' }}>Tamil Nadu</option>
-                    <option style={{ background: '#0d1f1a' }}>Karnataka</option>
-                    <option style={{ background: '#0d1f1a' }}>Gujarat</option>
-                    <option style={{ background: '#0d1f1a' }}>Other</option>
+                    <option style={{ background: '#0F1623' }}>Maharashtra</option>
+                    <option style={{ background: '#0F1623' }}>Kerala</option>
+                    <option style={{ background: '#0F1623' }}>Delhi</option>
+                    <option style={{ background: '#0F1623' }}>West Bengal</option>
+                    <option style={{ background: '#0F1623' }}>Rajasthan</option>
+                    <option style={{ background: '#0F1623' }}>Tamil Nadu</option>
+                    <option style={{ background: '#0F1623' }}>Karnataka</option>
+                    <option style={{ background: '#0F1623' }}>Gujarat</option>
+                    <option style={{ background: '#0F1623' }}>Other</option>
                   </select>
                 ),
               },
@@ -334,9 +333,9 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
                   key={i}
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
                   style={{
-                    background: 'rgba(234,179,8,0.15)',
-                    color: '#fde68a',
-                    border: '1px solid rgba(234,179,8,0.25)',
+                    background: 'rgba(255,149,0,0.12)',
+                    color: '#FFD580',
+                    border: '1px solid rgba(255,149,0,0.25)',
                   }}
                 >
                   {med}
@@ -352,8 +351,8 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
               placeholder="Type medication and press Enter…"
               style={GLASS_INPUT}
               onFocus={(e) => {
-                e.target.style.borderColor = 'rgba(16,185,129,0.5)';
-                e.target.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.1)';
+                e.target.style.borderColor = 'rgba(255,149,0,0.5)';
+                e.target.style.boxShadow = '0 0 0 3px rgba(255,149,0,0.1)';
               }}
             />
           </div>
@@ -369,9 +368,9 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
                   key={i}
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
                   style={{
-                    background: 'rgba(16,185,129,0.15)',
+                    background: 'rgba(6,214,160,0.12)',
                     color: '#6ee7b7',
-                    border: '1px solid rgba(16,185,129,0.25)',
+                    border: '1px solid rgba(6,214,160,0.25)',
                   }}
                 >
                   {cond}
@@ -387,8 +386,8 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
               placeholder="e.g. diabetes, hypertension…"
               style={GLASS_INPUT}
               onFocus={(e) => {
-                e.target.style.borderColor = 'rgba(16,185,129,0.5)';
-                e.target.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.1)';
+                e.target.style.borderColor = 'rgba(255,149,0,0.5)';
+                e.target.style.boxShadow = '0 0 0 3px rgba(255,149,0,0.1)';
               }}
             />
           </div>
@@ -399,16 +398,16 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
             disabled={loading}
             className="w-full py-4 rounded-xl text-white font-extrabold text-base transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
             style={{
-              background: 'linear-gradient(135deg, #10b981, #06b6d4)',
-              boxShadow: loading ? 'none' : '0 0 30px rgba(16,185,129,0.35)',
+              background: 'linear-gradient(135deg, #FF9500, #FF6B00)',
+              boxShadow: loading ? 'none' : '0 0 30px rgba(255,149,0,0.35)',
               animation: loading ? 'pulse-dot 1.5s ease-in-out infinite' : 'none',
               fontFamily: 'Sora, sans-serif',
             }}
             onMouseEnter={(e) => {
-              if (!loading) (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 50px rgba(16,185,129,0.55)';
+              if (!loading) (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 50px rgba(255,149,0,0.55)';
             }}
             onMouseLeave={(e) => {
-              if (!loading) (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 30px rgba(16,185,129,0.35)';
+              if (!loading) (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 30px rgba(255,149,0,0.35)';
             }}
           >
             {loading ? 'Analyzing…' : 'Analyze Symptoms →'}

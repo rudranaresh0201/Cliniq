@@ -7,8 +7,8 @@ interface Props {
 }
 
 function barGradient(pct: number) {
-  if (pct >= 70) return 'linear-gradient(90deg, #10b981, #06b6d4)';
-  if (pct >= 40) return 'linear-gradient(90deg, #f59e0b, #d97706)';
+  if (pct >= 70) return 'linear-gradient(90deg, #FF9500, #06D6A0)';
+  if (pct >= 40) return 'linear-gradient(90deg, #FF9500, #FF6B00)';
   return 'linear-gradient(90deg, #ef4444, #dc2626)';
 }
 
@@ -31,10 +31,9 @@ export default function ConditionCard({ condition, index }: Props) {
     <div
       className="rounded-2xl overflow-hidden transition-all duration-200 hover:-translate-y-0.5 animate-fade-in-up"
       style={{
-        background: 'rgba(255,255,255,0.04)',
+        background: '#0F1623',
         border: '1px solid rgba(255,255,255,0.08)',
-        backdropFilter: 'blur(20px)',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
         animationDelay: `${index * 0.08}s`,
         opacity: 0,
       }}
@@ -57,7 +56,7 @@ export default function ConditionCard({ condition, index }: Props) {
               <span
                 className="text-sm font-extrabold shrink-0 tabular-nums"
                 style={{
-                  color: pct >= 70 ? '#34d399' : pct >= 40 ? '#fbbf24' : '#f87171',
+                  color: pct >= 70 ? '#F59E0B' : pct >= 40 ? '#D97706' : '#f87171',
                 }}
               >
                 {pct}%
@@ -74,7 +73,7 @@ export default function ConditionCard({ condition, index }: Props) {
                 style={{
                   width: `${pct}%`,
                   background: barGradient(pct),
-                  boxShadow: pct >= 70 ? '0 0 8px rgba(16,185,129,0.5)' : 'none',
+                  boxShadow: pct >= 70 ? '0 0 8px rgba(255,149,0,0.5)' : 'none',
                 }}
               />
             </div>
@@ -86,9 +85,9 @@ export default function ConditionCard({ condition, index }: Props) {
             onClick={() => setExpanded((e) => !e)}
             className="mt-3.5 ml-[52px] inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all"
             style={{
-              background: expanded ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.06)',
-              color: expanded ? '#34d399' : 'rgba(255,255,255,0.45)',
-              border: expanded ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(255,255,255,0.08)',
+              background: expanded ? 'rgba(255,149,0,0.1)' : 'rgba(255,255,255,0.06)',
+              color: expanded ? '#F59E0B' : 'rgba(255,255,255,0.45)',
+              border: expanded ? '1px solid rgba(255,149,0,0.3)' : '1px solid rgba(255,255,255,0.08)',
             }}
           >
             <svg
@@ -106,8 +105,8 @@ export default function ConditionCard({ condition, index }: Props) {
         <div
           className="mx-5 mb-5 rounded-xl p-4 space-y-3"
           style={{
-            background: 'rgba(16,185,129,0.05)',
-            border: '1px solid rgba(16,185,129,0.15)',
+            background: 'rgba(255,149,0,0.05)',
+            border: '1px solid rgba(255,149,0,0.15)',
           }}
         >
           <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.3)' }}>
@@ -122,7 +121,7 @@ export default function ConditionCard({ condition, index }: Props) {
                   key={i}
                   className="pl-3 py-1.5 text-sm italic leading-relaxed rounded-r-lg"
                   style={{
-                    borderLeft: '2px solid rgba(16,185,129,0.5)',
+                    borderLeft: '2px solid rgba(255,149,0,0.4)',
                     color: 'rgba(255,255,255,0.6)',
                   }}
                 >
@@ -133,7 +132,7 @@ export default function ConditionCard({ condition, index }: Props) {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="not-italic ml-2 text-xs font-bold hover:underline transition-colors"
-                      style={{ color: '#34d399' }}
+                      style={{ color: '#06D6A0' }}
                     >
                       PubMed →
                     </a>
