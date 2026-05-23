@@ -1,5 +1,5 @@
 ---
-title: ClinIQ Medical RAG Backend
+title: ClinIQ Backend
 emoji: 🏥
 colorFrom: green
 colorTo: teal

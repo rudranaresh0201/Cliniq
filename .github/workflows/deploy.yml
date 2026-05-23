@@ -19,5 +19,5 @@ jobs:
         run: |
           git config user.email "deploy@cliniq.ai"
           git config user.name "ClinIQ Deploy"
-          git remote add hf https://rudranaresh0201:$HF_TOKEN@huggingface.co/spaces/rudranaresh0201/cliniq-backend || true
+          git remote add hf https://rudra201:$HF_TOKEN@huggingface.co/spaces/rudra201/cliniq-backend || true
           git push hf main --force
