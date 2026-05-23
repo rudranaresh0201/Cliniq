@@ -356,8 +356,16 @@ export default function Reports() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const acceptFile = (f: File) => {
-    const ok = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'text/plain'];
-    if (!ok.includes(f.type)) { setError('Please upload a PDF, image, or .txt file.'); return; }
+    const ok = [
+      'application/pdf',
+      'image/png',
+      'image/jpeg',
+      'image/jpg',
+      'image/webp',
+      'text/plain',
+      'text/csv',
+    ];
+    if (!ok.includes(f.type)) { setError('Please upload a PDF, image, .txt, or .csv file.'); return; }
     setFile(f); setError(null); setResult(null);
   };
 
@@ -431,7 +439,7 @@ export default function Reports() {
                 : 'rgba(255,255,255,0.02)',
             }}
           >
-            <input ref={inputRef} type="file" accept=".pdf,image/*,.txt" className="hidden" onChange={onChange} />
+            <input ref={inputRef} type="file" accept=".pdf,.txt,.csv,image/*" className="hidden" onChange={onChange} />
             {file ? (
               <>
                 <span className="text-3xl">📄</span>

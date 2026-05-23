@@ -38,6 +38,22 @@ export function useAnalyze() {
 
       const data: AnalyzeResponse = await response.json();
       setResult(data);
+
+      // Persist episode to localStorage so Dashboard survives backend restarts
+      if (request.patient_id) {
+        const key = `cliniq_episodes_${request.patient_id}`;
+        const existing = JSON.parse(localStorage.getItem(key) || '[]');
+        existing.unshift({
+          id: Date.now().toString(),
+          patient_id: request.patient_id,
+          query: request.query,
+          triage: data.triage,
+          conditions: (data.conditions || []).map((c: any) => c.name),
+          response_summary: data.patient_summary || '',
+          timestamp: new Date().toISOString(),
+        });
+        localStorage.setItem(key, JSON.stringify(existing.slice(0, 20)));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred.');
     } finally {

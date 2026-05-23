@@ -19,6 +19,8 @@ ALLOWED_TYPES = {
     "image/jpeg",
     "image/jpg",
     "image/webp",
+    "text/plain",
+    "text/csv",
 }
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 
@@ -33,15 +35,19 @@ async def upload_report(
     medications: Optional[str] = Form(None),
 ):
     """
-    Accept a PDF or image lab report, parse values, interpret abnormal results,
+    Accept a PDF, image, or text lab report, parse values, interpret abnormal results,
     and optionally save to patient history if user_id is provided.
     """
     content_type = file.content_type or ""
     if content_type not in ALLOWED_TYPES:
-        raise HTTPException(
-            status_code=415,
-            detail=f"Unsupported file type '{content_type}'. Upload a PDF or image.",
-        )
+        # Some browsers send empty or generic MIME for .txt — fall back to text/plain
+        if file.filename and file.filename.lower().endswith(('.txt', '.csv')):
+            content_type = 'text/plain'
+        else:
+            raise HTTPException(
+                status_code=415,
+                detail=f"Unsupported file type '{content_type}'. Upload a PDF, image, or text file.",
+            )
 
     file_bytes = await file.read()
     if len(file_bytes) > MAX_FILE_SIZE:

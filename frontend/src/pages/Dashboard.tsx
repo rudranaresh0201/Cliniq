@@ -160,6 +160,8 @@ export default function Dashboard() {
     setEpisodes([]);
     setTimeline(null);
 
+    const storageKey = `cliniq_episodes_${id}`;
+
     try {
       const [histRes, tlRes] = await Promise.allSettled([
         fetch(`${BASE_URL}/api/patient/${id}/history`),
@@ -168,9 +170,24 @@ export default function Dashboard() {
 
       if (histRes.status === 'fulfilled' && histRes.value.ok) {
         const data = await histRes.value.json();
-        setEpisodes(data.episodes || []);
+        const serverEpisodes: Episode[] = data.episodes || [];
+        if (serverEpisodes.length > 0) {
+          setEpisodes(serverEpisodes);
+        } else {
+          // Backend storage reset (HF restart) — fall back to localStorage
+          const localData = localStorage.getItem(storageKey);
+          if (localData) {
+            setEpisodes(JSON.parse(localData));
+          }
+        }
       } else {
-        setError('Could not load patient history. Make sure the patient ID is correct.');
+        // API error — try localStorage fallback
+        const localData = localStorage.getItem(storageKey);
+        if (localData) {
+          setEpisodes(JSON.parse(localData));
+        } else {
+          setError('Could not load patient history. Make sure the patient ID is correct.');
+        }
       }
 
       if (tlRes.status === 'fulfilled' && tlRes.value.ok) {
@@ -178,7 +195,13 @@ export default function Dashboard() {
         setTimeline(data.timeline_analysis);
       }
     } catch {
-      setError('Backend unreachable. Make sure the server is running.');
+      // Network error — try localStorage fallback
+      const localData = localStorage.getItem(storageKey);
+      if (localData) {
+        setEpisodes(JSON.parse(localData));
+      } else {
+        setError('Backend unreachable. Make sure the server is running.');
+      }
     } finally {
       setLoading(false);
     }
