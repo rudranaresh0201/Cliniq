@@ -1,10 +1,19 @@
-import { useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useState, useRef, type FormEvent, type KeyboardEvent } from 'react';
 import type { AnalyzeRequest } from '../types';
 
 interface Props {
   onSubmit: (request: AnalyzeRequest) => void;
   loading: boolean;
 }
+
+const VOICE_LANGS = [
+  { code: 'en-IN', label: 'EN' },
+  { code: 'hi-IN', label: 'हिं' },
+  { code: 'mr-IN', label: 'मर' },
+  { code: 'ta-IN', label: 'தமி' },
+  { code: 'te-IN', label: 'తెలు' },
+  { code: 'bn-IN', label: 'বাং' },
+];
 
 export default function SymptomForm({ onSubmit, loading }: Props) {
   const [patientId, setPatientId] = useState('');
@@ -17,6 +26,46 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
   const [conditions, setConditions] = useState<string[]>([]);
   const [condInput, setCondInput] = useState('');
   const [shake, setShake] = useState(false);
+
+  const [isListening, setIsListening] = useState(false);
+  const [voiceLang, setVoiceLang] = useState('en-IN');
+  const recognitionRef = useRef<any>(null);
+
+  const startVoice = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Voice input not supported in this browser. Use Chrome.');
+      return;
+    }
+
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
+
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = voiceLang;
+
+    recognition.onstart = () => setIsListening(true);
+
+    recognition.onresult = (event: any) => {
+      const transcript = Array.from(event.results)
+        .map((result: any) => result[0].transcript)
+        .join('');
+      setQuery(transcript);
+    };
+
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = () => setIsListening(false);
+
+    recognition.start();
+  };
+
+  const stopVoice = () => {
+    recognitionRef.current?.stop();
+    setIsListening(false);
+  };
 
   const addTag = (
     value: string,
@@ -96,16 +145,69 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
           <label className="block text-sm font-semibold text-slate-700 mb-2">
             Describe your symptoms <span className="text-red-400">*</span>
           </label>
-          <textarea
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="e.g. I've had a severe headache for 2 days, some fever, and my neck feels stiff..."
-            rows={4}
-            className={`w-full rounded-xl border-2 px-4 py-3 text-slate-800 placeholder-slate-400 text-sm resize-none focus:outline-none transition-all duration-200 ${
-              shake ? 'border-red-400 animate-pulse' : 'border-slate-200 focus:border-green-400'
-            }`}
-            style={{ fontFamily: 'Inter, sans-serif' }}
-          />
+
+          {/* Language selector pills */}
+          <div className="flex gap-1.5 mb-2 flex-wrap">
+            {VOICE_LANGS.map((lang) => (
+              <button
+                key={lang.code}
+                type="button"
+                onClick={() => setVoiceLang(lang.code)}
+                className="px-2.5 py-1 rounded-full text-xs font-semibold transition-all"
+                style={{
+                  background: voiceLang === lang.code ? '#4CAF50' : '#F1F5F9',
+                  color: voiceLang === lang.code ? '#fff' : '#64748b',
+                  border: voiceLang === lang.code ? '1.5px solid #4CAF50' : '1.5px solid #e2e8f0',
+                }}
+              >
+                {lang.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Textarea + mic button */}
+          <div className="relative">
+            <textarea
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="e.g. I've had a severe headache for 2 days, some fever, and my neck feels stiff..."
+              rows={4}
+              className={`w-full rounded-xl border-2 px-4 py-3 pr-14 text-slate-800 placeholder-slate-400 text-sm resize-none focus:outline-none transition-all duration-200 ${
+                shake ? 'border-red-400 animate-pulse' : isListening ? 'border-green-400' : 'border-slate-200 focus:border-green-400'
+              }`}
+              style={{ fontFamily: 'Inter, sans-serif' }}
+            />
+            <button
+              type="button"
+              onClick={isListening ? stopVoice : startVoice}
+              title={isListening ? 'Click to stop' : 'Click to speak'}
+              className="absolute bottom-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-all"
+              style={{
+                background: isListening ? '#FEF2F2' : '#F1F5F9',
+                border: isListening ? '2px solid #4CAF50' : '2px solid #e2e8f0',
+              }}
+            >
+              {isListening ? (
+                <span
+                  className="w-4 h-4 rounded-full bg-red-500"
+                  style={{ animation: 'pulse 1s ease-in-out infinite' }}
+                />
+              ) : (
+                <span className="text-base leading-none">🎤</span>
+              )}
+            </button>
+          </div>
+
+          {/* Listening status */}
+          {isListening && (
+            <div className="flex items-center gap-2 mt-1.5">
+              <span
+                className="w-2 h-2 rounded-full bg-green-500"
+                style={{ animation: 'pulse 1s ease-in-out infinite' }}
+              />
+              <span className="text-xs text-green-600 font-medium">Listening...</span>
+            </div>
+          )}
         </div>
 
         {/* Age, Gender, State row */}

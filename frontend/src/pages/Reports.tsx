@@ -310,7 +310,7 @@ export default function Reports() {
   const acceptFile = (f: File) => {
     const ok = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'text/plain'];
     if (!ok.includes(f.type)) {
-      setError('Please upload a PDF, image (PNG/JPG/WEBP), or .txt file.');
+      setError('Please upload a PDF, image, or .txt file.');
       return;
     }
     setFile(f);
