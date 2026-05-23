@@ -8,17 +8,16 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
           lfs: true
 
-      - name: Push to Hugging Face Space
+      - name: Push to HuggingFace
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git config user.email "deploy@cliniq.app"
-          git config user.name "ClinIQ Deploy Bot"
-          git remote add hf https://user:${HF_TOKEN}@huggingface.co/spaces/${{ secrets.HF_SPACE }}
+          git config user.email "deploy@cliniq.ai"
+          git config user.name "ClinIQ Deploy"
+          git remote add hf https://rudranaresh0201:$HF_TOKEN@huggingface.co/spaces/rudranaresh0201/cliniq-backend || true
           git push hf main --force
