@@ -15,6 +15,19 @@ const VOICE_LANGS = [
   { code: 'bn-IN', label: 'বাং' },
 ];
 
+const GLASS_INPUT: React.CSSProperties = {
+  width: '100%',
+  borderRadius: '12px',
+  border: '1px solid rgba(255,255,255,0.1)',
+  background: 'rgba(255,255,255,0.05)',
+  color: '#f1f5f9',
+  padding: '10px 16px',
+  fontSize: '0.875rem',
+  outline: 'none',
+  fontFamily: 'Sora, Inter, sans-serif',
+  transition: 'border-color 0.2s, box-shadow 0.2s',
+};
+
 export default function SymptomForm({ onSubmit, loading }: Props) {
   const [patientId, setPatientId]     = useState('');
   const [query, setQuery]             = useState('');
@@ -94,39 +107,57 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      {/* Premium card */}
-      <div className="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+      <div
+        className="rounded-2xl overflow-hidden"
+        style={{
+          background: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          backdropFilter: 'blur(20px)',
+          boxShadow: '0 25px 50px rgba(0,0,0,0.4)',
+        }}
+      >
         {/* Gradient top border */}
-        <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg,#16a34a,#0d9488,#2563eb)' }} />
+        <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, #10b981, #06b6d4, #6366f1)' }} />
 
         <form onSubmit={handleSubmit} className="p-7 space-y-5">
           <div className="mb-1">
-            <h2 className="text-xl font-extrabold text-slate-800 tracking-tight">
+            <h2
+              className="text-xl font-extrabold tracking-tight"
+              style={{ color: '#f1f5f9', fontFamily: 'Sora, sans-serif' }}
+            >
               What's bothering you today?
             </h2>
-            <p className="text-slate-400 text-sm mt-0.5">
+            <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
               Describe your symptoms — ClinIQ will analyze them with PubMed-backed AI.
             </p>
           </div>
 
           {/* Patient ID */}
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">
-              Patient ID <span className="normal-case font-normal text-slate-400">(optional)</span>
+            <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+              Patient ID <span className="normal-case font-normal" style={{ color: 'rgba(255,255,255,0.25)' }}>(optional)</span>
             </label>
             <input
               type="text"
               value={patientId}
               onChange={(e) => setPatientId(e.target.value)}
               placeholder="For longitudinal tracking"
-              className="w-full rounded-xl border-2 border-slate-200 px-4 py-2.5 text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:border-green-400 transition-colors"
+              style={GLASS_INPUT}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'rgba(16,185,129,0.5)';
+                e.target.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.1)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'rgba(255,255,255,0.1)';
+                e.target.style.boxShadow = 'none';
+              }}
             />
           </div>
 
           {/* Symptom textarea */}
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">
-              Symptoms <span className="text-red-400">*</span>
+            <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+              Symptoms <span style={{ color: '#f87171' }}>*</span>
             </label>
 
             {/* Language pills */}
@@ -139,10 +170,12 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
                   className="px-2.5 py-1 rounded-full text-xs font-bold transition-all"
                   style={{
                     background: voiceLang === lang.code
-                      ? 'linear-gradient(135deg,#16a34a,#0d9488)'
-                      : '#f1f5f9',
-                    color: voiceLang === lang.code ? '#fff' : '#64748b',
-                    border: voiceLang === lang.code ? '1.5px solid transparent' : '1.5px solid #e2e8f0',
+                      ? 'linear-gradient(135deg,#10b981,#06b6d4)'
+                      : 'rgba(255,255,255,0.06)',
+                    color: voiceLang === lang.code ? '#fff' : 'rgba(255,255,255,0.45)',
+                    border: voiceLang === lang.code
+                      ? '1px solid transparent'
+                      : '1px solid rgba(255,255,255,0.1)',
                   }}
                 >
                   {lang.label}
@@ -156,14 +189,29 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="e.g. Severe headache for 2 days, fever 102°F, neck stiffness, sensitivity to light..."
                 rows={5}
-                className={`w-full rounded-xl border-2 px-4 py-3 pr-14 text-slate-800 placeholder-slate-400 text-sm resize-none focus:outline-none transition-all duration-200 ${
-                  shake
-                    ? 'border-red-400 animate-pulse'
+                style={{
+                  ...GLASS_INPUT,
+                  padding: '12px 56px 12px 16px',
+                  resize: 'none',
+                  borderColor: shake
+                    ? 'rgba(239,68,68,0.6)'
                     : isListening
-                    ? 'border-green-400 shadow-[0_0_0_3px_rgba(22,163,74,0.15)]'
-                    : 'border-slate-200 focus:border-green-400'
-                }`}
-                style={{ fontFamily: 'Inter, sans-serif' }}
+                    ? 'rgba(16,185,129,0.6)'
+                    : 'rgba(255,255,255,0.1)',
+                  boxShadow: isListening ? '0 0 0 3px rgba(16,185,129,0.1)' : 'none',
+                }}
+                onFocus={(e) => {
+                  if (!shake && !isListening) {
+                    e.target.style.borderColor = 'rgba(16,185,129,0.5)';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.1)';
+                  }
+                }}
+                onBlur={(e) => {
+                  if (!isListening) {
+                    e.target.style.borderColor = 'rgba(255,255,255,0.1)';
+                    e.target.style.boxShadow = 'none';
+                  }
+                }}
               />
               <button
                 type="button"
@@ -171,8 +219,8 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
                 title={isListening ? 'Click to stop' : 'Click to speak'}
                 className="absolute bottom-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-all"
                 style={{
-                  background: isListening ? '#fee2e2' : '#f1f5f9',
-                  border: isListening ? '2px solid #16a34a' : '2px solid #e2e8f0',
+                  background: isListening ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.08)',
+                  border: isListening ? '1.5px solid rgba(16,185,129,0.5)' : '1.5px solid rgba(255,255,255,0.12)',
                 }}
               >
                 {isListening ? (
@@ -188,10 +236,8 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
 
             {isListening && (
               <div className="flex items-center gap-2 mt-1.5">
-                <span
-                  className="w-2 h-2 rounded-full bg-green-500 animate-pulse-dot"
-                />
-                <span className="text-xs text-green-600 font-semibold">Listening…</span>
+                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse-dot" />
+                <span className="text-xs font-semibold" style={{ color: '#4ade80' }}>Listening…</span>
               </div>
             )}
           </div>
@@ -206,7 +252,15 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
                     type="number" value={age}
                     onChange={(e) => setAge(e.target.value)}
                     placeholder="e.g. 34" min={1} max={120}
-                    className="w-full rounded-xl border-2 border-slate-200 px-4 py-2.5 text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:border-green-400 transition-colors"
+                    style={GLASS_INPUT}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'rgba(16,185,129,0.5)';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'rgba(255,255,255,0.1)';
+                      e.target.style.boxShadow = 'none';
+                    }}
                   />
                 ),
               },
@@ -215,12 +269,20 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
                 el: (
                   <select
                     value={gender} onChange={(e) => setGender(e.target.value)}
-                    className="w-full rounded-xl border-2 border-slate-200 px-4 py-2.5 text-slate-700 text-sm focus:outline-none focus:border-green-400 transition-colors bg-white appearance-none"
+                    style={{ ...GLASS_INPUT, appearance: 'none' as const, WebkitAppearance: 'none' as const }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'rgba(16,185,129,0.5)';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'rgba(255,255,255,0.1)';
+                      e.target.style.boxShadow = 'none';
+                    }}
                   >
-                    <option value="">Select…</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
+                    <option value="" style={{ background: '#0d1f1a' }}>Select…</option>
+                    <option value="male" style={{ background: '#0d1f1a' }}>Male</option>
+                    <option value="female" style={{ background: '#0d1f1a' }}>Female</option>
+                    <option value="other" style={{ background: '#0d1f1a' }}>Other</option>
                   </select>
                 ),
               },
@@ -229,23 +291,31 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
                 el: (
                   <select
                     value={state} onChange={(e) => setState(e.target.value)}
-                    className="w-full rounded-xl border-2 border-slate-200 px-4 py-2.5 text-slate-700 text-sm focus:outline-none focus:border-green-400 transition-colors bg-white appearance-none"
+                    style={{ ...GLASS_INPUT, appearance: 'none' as const, WebkitAppearance: 'none' as const }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'rgba(16,185,129,0.5)';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'rgba(255,255,255,0.1)';
+                      e.target.style.boxShadow = 'none';
+                    }}
                   >
-                    <option>Maharashtra</option>
-                    <option>Kerala</option>
-                    <option>Delhi</option>
-                    <option>West Bengal</option>
-                    <option>Rajasthan</option>
-                    <option>Tamil Nadu</option>
-                    <option>Karnataka</option>
-                    <option>Gujarat</option>
-                    <option>Other</option>
+                    <option style={{ background: '#0d1f1a' }}>Maharashtra</option>
+                    <option style={{ background: '#0d1f1a' }}>Kerala</option>
+                    <option style={{ background: '#0d1f1a' }}>Delhi</option>
+                    <option style={{ background: '#0d1f1a' }}>West Bengal</option>
+                    <option style={{ background: '#0d1f1a' }}>Rajasthan</option>
+                    <option style={{ background: '#0d1f1a' }}>Tamil Nadu</option>
+                    <option style={{ background: '#0d1f1a' }}>Karnataka</option>
+                    <option style={{ background: '#0d1f1a' }}>Gujarat</option>
+                    <option style={{ background: '#0d1f1a' }}>Other</option>
                   </select>
                 ),
               },
             ].map(({ label, el }) => (
               <div key={label}>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
                   {label}
                 </label>
                 {el}
@@ -255,7 +325,7 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
 
           {/* Medications */}
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
               Current Medications
             </label>
             <div className="flex flex-wrap gap-2 mb-2">
@@ -263,7 +333,11 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
                 <span
                   key={i}
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
-                  style={{ background: '#fef9e7', color: '#b8860b', border: '1px solid #f5c518' }}
+                  style={{
+                    background: 'rgba(234,179,8,0.15)',
+                    color: '#fde68a',
+                    border: '1px solid rgba(234,179,8,0.25)',
+                  }}
                 >
                   {med}
                   <button type="button" onClick={() => removeTag(i, medications, setMedications)} className="hover:opacity-70 ml-0.5">×</button>
@@ -276,13 +350,17 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
               onKeyDown={(e) => handleTagKeyDown(e, medInput, medications, setMedications, setMedInput)}
               onBlur={() => addTag(medInput, medications, setMedications, setMedInput)}
               placeholder="Type medication and press Enter…"
-              className="w-full rounded-xl border-2 border-slate-200 px-4 py-2.5 text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:border-green-400 transition-colors"
+              style={GLASS_INPUT}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'rgba(16,185,129,0.5)';
+                e.target.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.1)';
+              }}
             />
           </div>
 
           {/* Existing conditions */}
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
               Existing Conditions
             </label>
             <div className="flex flex-wrap gap-2 mb-2">
@@ -290,7 +368,11 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
                 <span
                   key={i}
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
-                  style={{ background: '#e8f5e9', color: '#2e7d32', border: '1px solid #4caf50' }}
+                  style={{
+                    background: 'rgba(16,185,129,0.15)',
+                    color: '#6ee7b7',
+                    border: '1px solid rgba(16,185,129,0.25)',
+                  }}
                 >
                   {cond}
                   <button type="button" onClick={() => removeTag(i, conditions, setConditions)} className="hover:opacity-70 ml-0.5">×</button>
@@ -303,7 +385,11 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
               onKeyDown={(e) => handleTagKeyDown(e, condInput, conditions, setConditions, setCondInput)}
               onBlur={() => addTag(condInput, conditions, setConditions, setCondInput)}
               placeholder="e.g. diabetes, hypertension…"
-              className="w-full rounded-xl border-2 border-slate-200 px-4 py-2.5 text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:border-green-400 transition-colors"
+              style={GLASS_INPUT}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'rgba(16,185,129,0.5)';
+                e.target.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.1)';
+              }}
             />
           </div>
 
@@ -311,12 +397,18 @@ export default function SymptomForm({ onSubmit, loading }: Props) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4 rounded-xl text-white font-extrabold text-base transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100 shadow-lg hover:shadow-xl"
+            className="w-full py-4 rounded-xl text-white font-extrabold text-base transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
             style={{
-              background: loading
-                ? 'linear-gradient(135deg,#15803d,#0f766e)'
-                : 'linear-gradient(135deg,#16a34a,#0d9488)',
+              background: 'linear-gradient(135deg, #10b981, #06b6d4)',
+              boxShadow: loading ? 'none' : '0 0 30px rgba(16,185,129,0.35)',
               animation: loading ? 'pulse-dot 1.5s ease-in-out infinite' : 'none',
+              fontFamily: 'Sora, sans-serif',
+            }}
+            onMouseEnter={(e) => {
+              if (!loading) (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 50px rgba(16,185,129,0.55)';
+            }}
+            onMouseLeave={(e) => {
+              if (!loading) (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 30px rgba(16,185,129,0.35)';
             }}
           >
             {loading ? 'Analyzing…' : 'Analyze Symptoms →'}

@@ -26,112 +26,168 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'reports',   label: 'Lab Reports' },
 ];
 
-const FLOAT_ICONS = [
-  { icon: '+', top: '10%', left: '5%',  delay: '0s',   size: 28 },
-  { icon: '+', top: '20%', left: '90%', delay: '1.2s', size: 22 },
-  { icon: '+', top: '55%', left: '3%',  delay: '0.6s', size: 20 },
-  { icon: '+', top: '70%', left: '92%', delay: '2s',   size: 18 },
-  { icon: '+', top: '80%', left: '8%',  delay: '1.5s', size: 24 },
-  { icon: '+', top: '40%', left: '95%', delay: '0.3s', size: 18 },
-  { icon: '+', top: '90%', left: '50%', delay: '2.5s', size: 20 },
-];
-
 const STATS = [
-  { value: '35M+',   label: 'Medical Papers' },
-  { value: '10',     label: 'Indian Languages' },
-  { value: 'Live',   label: 'PubMed Citations' },
-  { value: '< 5s',   label: 'Response Time' },
+  { value: '35M+',  label: 'Medical Papers' },
+  { value: '10',    label: 'Indian Languages' },
+  { value: 'Live',  label: 'PubMed Citations' },
+  { value: '< 5s',  label: 'Response Time' },
 ];
 
-function FloatingBackground() {
+const FEATURES = [
+  { icon: '🔬', label: 'PubMed Citations' },
+  { icon: '🇮🇳', label: 'India-Aware' },
+  { icon: '⚡', label: 'Instant Analysis' },
+  { icon: '📚', label: '35M+ Papers' },
+];
+
+function AnimatedBackground() {
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-      {FLOAT_ICONS.map((item, i) => (
-        <span
-          key={i}
-          className="absolute select-none animate-float"
-          style={{
-            top: item.top,
-            left: item.left,
-            fontSize: item.size,
-            opacity: 0.03,
-            animationDelay: item.delay,
-            animationDuration: `${4 + i * 0.7}s`,
-          }}
-        >
-          {item.icon}
-        </span>
-      ))}
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 0,
+        background: 'linear-gradient(135deg, #0a0f1a 0%, #0d1f1a 50%, #0a0f1a 100%)',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Floating orbs */}
+      <div style={{
+        position: 'absolute', top: '20%', left: '10%',
+        width: 400, height: 400, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 70%)',
+        animation: 'floatUp 8s ease-in-out infinite',
+      }} />
+      <div style={{
+        position: 'absolute', top: '60%', right: '10%',
+        width: 300, height: 300, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(6,182,212,0.1) 0%, transparent 70%)',
+        animation: 'floatUp 10s ease-in-out infinite reverse',
+      }} />
+      <div style={{
+        position: 'absolute', top: '40%', left: '50%',
+        width: 500, height: 500, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(16,185,129,0.05) 0%, transparent 70%)',
+        animation: 'floatUp 12s ease-in-out infinite',
+      }} />
+
+      {/* Subtle grid mesh */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage:
+            'linear-gradient(rgba(16,185,129,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.04) 1px, transparent 1px)',
+          backgroundSize: '60px 60px',
+        }}
+      />
     </div>
   );
 }
 
 function HeroSection() {
   return (
-    <div className="text-center mb-10 space-y-6 animate-fade-in-up">
-      {/* Headline */}
-      <div>
-        <h2
-          className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight"
+    <div className="text-center mb-10 space-y-7 animate-fade-in-up">
+      {/* Pill badge */}
+      <div className="flex justify-center">
+        <span
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
           style={{
-            background: 'linear-gradient(135deg,#0f172a 0%,#16a34a 60%,#0d9488 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
+            background: 'rgba(16,185,129,0.1)',
+            border: '1px solid rgba(16,185,129,0.35)',
+            color: 'rgba(16,185,129,0.9)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 0 20px rgba(16,185,129,0.15)',
           }}
         >
-          Medical answers<br />you can trust
+          🇮🇳 Built for India
+        </span>
+      </div>
+
+      {/* Headline */}
+      <div className="space-y-3">
+        <h2
+          style={{
+            fontFamily: 'Sora, sans-serif',
+            fontWeight: 800,
+            fontSize: 'clamp(2.5rem, 6vw, 4.5rem)',
+            lineHeight: 1.1,
+            letterSpacing: '-0.02em',
+            color: '#ffffff',
+            margin: 0,
+          }}
+        >
+          Medical Intelligence
+          <br />
+          You Can{' '}
+          <span
+            style={{
+              background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            Trust
+          </span>
         </h2>
-        <p className="text-slate-500 text-lg mt-3 font-medium">
-          India's first AI that thinks like a clinician
+        <p style={{ color: '#94a3b8', fontSize: '1.125rem', fontWeight: 400 }}>
+          AI-powered clinical reasoning for 1.4 billion Indians
         </p>
       </div>
 
       {/* Feature pills */}
       <div className="flex flex-wrap justify-center gap-3">
-        {[
-          { icon: '🇮🇳', label: 'India-Aware',      delay: '0.1s' },
-          { icon: null,   label: 'PubMed Citations', delay: '0.2s' },
-          { icon: null,   label: 'Instant Analysis', delay: '0.3s' },
-        ].map(({ icon, label, delay }) => (
+        {FEATURES.map(({ icon, label }, i) => (
           <span
             key={label}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold animate-float"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold animate-fade-in-up"
             style={{
-              background: 'white',
-              border: '1.5px solid #e2e8f0',
-              color: '#334155',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-              animationDelay: delay,
-              animationDuration: '3.5s',
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              backdropFilter: 'blur(10px)',
+              color: '#e2e8f0',
+              animationDelay: `${i * 0.1 + 0.2}s`,
+              opacity: 0,
             }}
           >
-            {icon && <span>{icon}</span>}
+            <span>{icon}</span>
             {label}
           </span>
         ))}
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-4 gap-4 max-w-xl mx-auto">
+      <div className="grid grid-cols-4 gap-3 max-w-xl mx-auto">
         {STATS.map(({ value, label }, i) => (
           <div
             key={label}
-            className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 animate-fade-in-up"
-            style={{ animationDelay: `${0.15 + i * 0.1}s` }}
+            className="rounded-2xl p-4 text-center animate-fade-in-up"
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              backdropFilter: 'blur(20px)',
+              animationDelay: `${0.3 + i * 0.08}s`,
+              opacity: 0,
+            }}
           >
             <p
-              className="text-xl font-extrabold"
               style={{
-                background: 'linear-gradient(135deg,#16a34a,#0d9488)',
+                fontFamily: 'Sora, sans-serif',
+                fontWeight: 700,
+                fontSize: '1.25rem',
+                background: 'linear-gradient(135deg, #10b981, #06b6d4)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
+                margin: 0,
               }}
             >
               {value}
             </p>
-            <p className="text-xs text-slate-400 font-medium mt-0.5 leading-tight">{label}</p>
+            <p style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 500, marginTop: '2px', lineHeight: 1.3 }}>
+              {label}
+            </p>
           </div>
         ))}
       </div>
@@ -154,12 +210,19 @@ export default function App() {
   const { analyze } = plain;
 
   return (
-    <div className="min-h-screen flex flex-col relative" style={{ fontFamily: 'Inter, sans-serif' }}>
-      <FloatingBackground />
+    <div className="min-h-screen flex flex-col relative" style={{ fontFamily: 'Sora, Inter, sans-serif' }}>
+      <AnimatedBackground />
       <Header />
 
       {/* Tabs */}
-      <nav className="bg-white border-b border-slate-100 shadow-sm relative z-10">
+      <nav
+        className="relative z-10"
+        style={{
+          background: 'rgba(10,15,26,0.8)',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          backdropFilter: 'blur(20px)',
+        }}
+      >
         <div className="max-w-3xl mx-auto px-4">
           <div className="flex gap-1">
             {TABS.map((tab) => {
@@ -170,8 +233,9 @@ export default function App() {
                   onClick={() => setActiveTab(tab.id)}
                   className="flex items-center px-4 py-3.5 text-sm font-bold transition-all border-b-2 -mb-px"
                   style={{
-                    borderColor: active ? '#16a34a' : 'transparent',
-                    color: active ? '#16a34a' : '#64748b',
+                    borderColor: active ? '#10b981' : 'transparent',
+                    color: active ? '#10b981' : 'rgba(255,255,255,0.4)',
+                    boxShadow: active ? '0 2px 12px rgba(16,185,129,0.2)' : 'none',
                   }}
                 >
                   {tab.label}
@@ -182,8 +246,8 @@ export default function App() {
         </div>
       </nav>
 
-      <main className="flex-1 bg-slate-50 relative z-10">
-        {/* ── Analyze tab ── */}
+      <main className="flex-1 relative z-10">
+        {/* Analyze tab */}
         {activeTab === 'analyze' && (
           <div className="max-w-3xl mx-auto w-full px-4 py-10">
             {!loading && !result && (
@@ -193,14 +257,16 @@ export default function App() {
                 {/* Stream mode toggle */}
                 <div className="flex justify-end">
                   <label className="inline-flex items-center gap-2 cursor-pointer select-none">
-                    <span className="text-xs font-bold text-slate-500">Stream mode</span>
+                    <span className="text-xs font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      Stream mode
+                    </span>
                     <button
                       type="button"
                       role="switch"
                       aria-checked={streamMode}
                       onClick={() => setStreamMode((v) => !v)}
                       className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none"
-                      style={{ background: streamMode ? '#16a34a' : '#cbd5e1' }}
+                      style={{ background: streamMode ? '#10b981' : 'rgba(255,255,255,0.15)' }}
                     >
                       <span
                         className="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform"
@@ -227,12 +293,18 @@ export default function App() {
                 />
 
                 {error && (
-                  <div className="bg-red-50 border border-red-200 rounded-xl px-5 py-4 flex items-start gap-3 animate-fade-in-up">
-                    <span className="text-red-500 text-lg shrink-0">✕</span>
+                  <div
+                    className="rounded-xl px-5 py-4 flex items-start gap-3 animate-fade-in-up"
+                    style={{
+                      background: 'rgba(239,68,68,0.1)',
+                      border: '1px solid rgba(239,68,68,0.3)',
+                    }}
+                  >
+                    <span className="text-red-400 text-lg shrink-0">✕</span>
                     <div>
-                      <p className="font-bold text-red-800 text-sm">Something went wrong</p>
-                      <p className="text-red-600 text-sm mt-0.5">{error}</p>
-                      <p className="text-red-500 text-xs mt-1">
+                      <p className="font-bold text-red-400 text-sm">Something went wrong</p>
+                      <p className="text-red-300 text-sm mt-0.5">{error}</p>
+                      <p className="text-red-400/60 text-xs mt-1">
                         Make sure the backend is running at http://127.0.0.1:8000
                       </p>
                     </div>
@@ -255,7 +327,8 @@ export default function App() {
               <div className="space-y-5">
                 <button
                   onClick={reset}
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors group animate-fade-in-up"
+                  className="inline-flex items-center gap-2 text-sm font-semibold transition-colors group animate-fade-in-up"
+                  style={{ color: 'rgba(255,255,255,0.4)' }}
                 >
                   <svg
                     className="w-4 h-4 transition-transform group-hover:-translate-x-0.5"
@@ -267,7 +340,14 @@ export default function App() {
                 </button>
 
                 {result.error && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 text-sm text-yellow-800 animate-fade-in-up">
+                  <div
+                    className="rounded-xl px-4 py-3 text-sm animate-fade-in-up"
+                    style={{
+                      background: 'rgba(234,179,8,0.1)',
+                      border: '1px solid rgba(234,179,8,0.25)',
+                      color: '#fde68a',
+                    }}
+                  >
                     {result.error}
                   </div>
                 )}
@@ -305,7 +385,7 @@ export default function App() {
 
                 {result.conditions && result.conditions.length > 0 && (
                   <div className="animate-fade-in-up stagger-3">
-                    <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
+                    <h2 className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>
                       Possible Conditions
                     </h2>
                     <div className="space-y-3">
@@ -341,14 +421,21 @@ export default function App() {
                 </div>
 
                 {result.follow_up_questions && result.follow_up_questions.length > 0 && (
-                  <div className="bg-white rounded-2xl shadow-md border border-slate-100 p-5 animate-fade-in-up stagger-6">
+                  <div
+                    className="rounded-2xl p-5 animate-fade-in-up stagger-6"
+                    style={{
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      backdropFilter: 'blur(20px)',
+                    }}
+                  >
                     <div className="flex items-center gap-2 mb-3">
-                      <h3 className="font-bold text-slate-800">Follow-up Questions</h3>
+                      <h3 className="font-bold" style={{ color: '#f1f5f9' }}>Follow-up Questions</h3>
                     </div>
                     <ul className="space-y-2">
                       {result.follow_up_questions.map((q, i) => (
-                        <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                          <span className="text-slate-300 shrink-0 font-bold">{i + 1}.</span>
+                        <li key={i} className="text-sm flex items-start gap-2" style={{ color: '#94a3b8' }}>
+                          <span className="shrink-0 font-bold" style={{ color: 'rgba(255,255,255,0.2)' }}>{i + 1}.</span>
                           {q}
                         </li>
                       ))}
@@ -364,14 +451,21 @@ export default function App() {
           </div>
         )}
 
-        {/* ── Dashboard tab ── */}
+        {/* Dashboard tab */}
         {activeTab === 'dashboard' && <Dashboard />}
 
-        {/* ── Reports tab ── */}
+        {/* Reports tab */}
         {activeTab === 'reports' && <Reports />}
       </main>
 
-      <footer className="py-6 text-center text-xs text-slate-400 border-t border-slate-100 bg-white relative z-10">
+      <footer
+        className="py-6 text-center text-xs relative z-10"
+        style={{
+          color: 'rgba(255,255,255,0.25)',
+          borderTop: '1px solid rgba(255,255,255,0.06)',
+          background: 'rgba(10,15,26,0.8)',
+        }}
+      >
         ClinIQ © {new Date().getFullYear()} — For informational purposes only. Not a substitute for professional medical advice.
       </footer>
     </div>
