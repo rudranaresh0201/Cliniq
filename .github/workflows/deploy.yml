@@ -19,7 +19,19 @@ jobs:
         run: |
           git config user.email "deploy@cliniq.ai"
           git config user.name "ClinIQ Deploy"
-          cp SPACE_README.md README.md
+          cat > README.md << 'EOF'
+          ---
+          title: ClinIQ Medical RAG Backend
+          emoji: 🏥
+          colorFrom: green
+          colorTo: blue
+          sdk: docker
+          pinned: false
+          ---
+
+          # ClinIQ Backend
+          India-aware medical intelligence API powered by PubMed + Groq.
+          EOF
           git add README.md
           git remote add hf https://rudra201:$HF_TOKEN@huggingface.co/spaces/rudra201/cliniq-backend || true
           git push hf main --force
