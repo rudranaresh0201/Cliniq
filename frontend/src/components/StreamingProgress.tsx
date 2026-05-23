@@ -30,9 +30,8 @@ export default function StreamingProgress({ stage, completedStages, stageMessage
 
         <ul className="space-y-4">
           {ALL_STAGES.map((s) => {
-            const done    = completedStages.includes(s.id);
-            const active  = !done && stage === s.id;
-            const pending = !done && !active;
+            const done   = completedStages.includes(s.id);
+            const active = !done && stage === s.id;
 
             return (
               <li key={s.id} className="flex items-start gap-3 relative">
