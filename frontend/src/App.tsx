@@ -20,20 +20,20 @@ import type { AnalyzeResponse } from './types';
 
 type Tab = 'analyze' | 'dashboard' | 'reports';
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: 'analyze',   label: 'Analyze',     icon: '🔬' },
-  { id: 'dashboard', label: 'Dashboard',   icon: '📊' },
-  { id: 'reports',   label: 'Lab Reports', icon: '📋' },
+const TABS: { id: Tab; label: string }[] = [
+  { id: 'analyze',   label: 'Analyze'     },
+  { id: 'dashboard', label: 'Dashboard'   },
+  { id: 'reports',   label: 'Lab Reports' },
 ];
 
 const FLOAT_ICONS = [
-  { icon: '+',  top: '10%', left: '5%',  delay: '0s',    size: 28 },
-  { icon: '♥',  top: '20%', left: '90%', delay: '1.2s',  size: 22 },
-  { icon: '🩺', top: '55%', left: '3%',  delay: '0.6s',  size: 20 },
-  { icon: '💊', top: '70%', left: '92%', delay: '2s',    size: 18 },
-  { icon: '+',  top: '80%', left: '8%',  delay: '1.5s',  size: 24 },
-  { icon: '♥',  top: '40%', left: '95%', delay: '0.3s',  size: 18 },
-  { icon: '+',  top: '90%', left: '50%', delay: '2.5s',  size: 20 },
+  { icon: '+', top: '10%', left: '5%',  delay: '0s',   size: 28 },
+  { icon: '+', top: '20%', left: '90%', delay: '1.2s', size: 22 },
+  { icon: '+', top: '55%', left: '3%',  delay: '0.6s', size: 20 },
+  { icon: '+', top: '70%', left: '92%', delay: '2s',   size: 18 },
+  { icon: '+', top: '80%', left: '8%',  delay: '1.5s', size: 24 },
+  { icon: '+', top: '40%', left: '95%', delay: '0.3s', size: 18 },
+  { icon: '+', top: '90%', left: '50%', delay: '2.5s', size: 20 },
 ];
 
 const STATS = [
@@ -90,9 +90,9 @@ function HeroSection() {
       {/* Feature pills */}
       <div className="flex flex-wrap justify-center gap-3">
         {[
-          { icon: '🔬', label: 'PubMed Citations',   delay: '0.1s' },
-          { icon: '🇮🇳', label: 'India-Aware',       delay: '0.2s' },
-          { icon: '⚡', label: 'Instant Analysis',   delay: '0.3s' },
+          { icon: '🇮🇳', label: 'India-Aware',      delay: '0.1s' },
+          { icon: null,   label: 'PubMed Citations', delay: '0.2s' },
+          { icon: null,   label: 'Instant Analysis', delay: '0.3s' },
         ].map(({ icon, label, delay }) => (
           <span
             key={label}
@@ -106,7 +106,7 @@ function HeroSection() {
               animationDuration: '3.5s',
             }}
           >
-            <span>{icon}</span>
+            {icon && <span>{icon}</span>}
             {label}
           </span>
         ))}
@@ -168,13 +168,12 @@ export default function App() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className="flex items-center gap-1.5 px-4 py-3.5 text-sm font-bold transition-all border-b-2 -mb-px"
+                  className="flex items-center px-4 py-3.5 text-sm font-bold transition-all border-b-2 -mb-px"
                   style={{
                     borderColor: active ? '#16a34a' : 'transparent',
                     color: active ? '#16a34a' : '#64748b',
                   }}
                 >
-                  <span>{tab.icon}</span>
                   {tab.label}
                 </button>
               );
@@ -269,7 +268,7 @@ export default function App() {
 
                 {result.error && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 text-sm text-yellow-800 animate-fade-in-up">
-                    ⚠️ {result.error}
+                    {result.error}
                   </div>
                 )}
 
@@ -344,7 +343,6 @@ export default function App() {
                 {result.follow_up_questions && result.follow_up_questions.length > 0 && (
                   <div className="bg-white rounded-2xl shadow-md border border-slate-100 p-5 animate-fade-in-up stagger-6">
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="text-lg">💬</span>
                       <h3 className="font-bold text-slate-800">Follow-up Questions</h3>
                     </div>
                     <ul className="space-y-2">

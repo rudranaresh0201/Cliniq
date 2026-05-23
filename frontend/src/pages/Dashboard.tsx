@@ -213,7 +213,6 @@ export default function Dashboard() {
             className="px-5 py-4 flex items-center gap-3"
             style={{ background: 'linear-gradient(135deg,#16a34a,#0d9488)' }}
           >
-            <span className="text-xl">🧠</span>
             <h2 className="font-bold text-white">AI Timeline Analysis</h2>
             <div className="ml-auto flex items-center gap-2">
               <span className="text-lg">{TREND_ICON[timeline.trend] || '➡️'}</span>
@@ -244,7 +243,7 @@ export default function Dashboard() {
                 </p>
                 <ul className="space-y-1">
                   {timeline.chronic_risk_flags.map((f, i) => (
-                    <li key={i} className="text-sm text-orange-800">⚠️ {f}</li>
+                    <li key={i} className="text-sm text-orange-800">{f}</li>
                   ))}
                 </ul>
               </div>
@@ -263,7 +262,6 @@ export default function Dashboard() {
       {/* Empty state */}
       {userId && !loading && episodes.length === 0 && !error && (
         <div className="text-center py-16 animate-fade-in-up">
-          <p className="text-5xl mb-4">📋</p>
           <p className="font-bold text-slate-600 text-lg">No episodes found</p>
           <p className="text-sm text-slate-400 mt-1">Start by analyzing some symptoms on the Analyze tab.</p>
         </div>

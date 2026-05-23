@@ -11,7 +11,13 @@ export default function DrugSafety({ drugSafety }: Props) {
     <div className="bg-white rounded-xl shadow-md border-l-4 border-red-500 overflow-hidden">
       <div className="bg-red-50 px-5 py-4 border-b border-red-100">
         <div className="flex items-center gap-3">
-          <span className="text-2xl">⚠️</span>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#FEE2E2' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
           <div>
             <h3 className="font-bold text-red-800 text-base">Drug Interaction Warning</h3>
             <p className="text-xs text-red-600 mt-0.5">Potential interactions detected with your medications</p>

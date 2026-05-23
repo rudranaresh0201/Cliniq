@@ -54,7 +54,7 @@ export default function Header() {
               animation: 'shimmer 2.5s linear infinite',
             }}
           >
-            ⚡ Powered by PubMed + AI
+            Powered by PubMed + AI
           </span>
 
           <span

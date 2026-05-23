@@ -25,7 +25,7 @@ export default function IndiaContext({ season, high_risk_diseases, regional_aler
     <div className="bg-white rounded-xl shadow-md border border-slate-100 p-5">
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
-        <span className="text-lg">🇮🇳</span>
+        <span className="text-base">🇮🇳</span>
         <h3 className="font-bold text-slate-800 text-sm">India Epidemiological Context</h3>
       </div>
 
@@ -48,7 +48,7 @@ export default function IndiaContext({ season, high_risk_diseases, regional_aler
               className="flex items-start gap-2 px-3 py-2 rounded-lg text-xs"
               style={{ background: '#FFF7ED', border: '1px solid #FED7AA' }}
             >
-              <span className="shrink-0">⚠️</span>
+              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-orange-400 mt-1" />
               <span className="text-orange-800">
                 <strong>{alert.disease}:</strong> {alert.message} —{' '}
                 <span className="text-orange-600">{alert.source}</span>

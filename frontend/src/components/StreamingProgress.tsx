@@ -5,13 +5,13 @@ interface Props {
 }
 
 const ALL_STAGES = [
-  { id: 'safety_check',  label: 'Safety Check',         icon: '🛡️' },
-  { id: 'cache_check',   label: 'Memory Check',          icon: '⚡' },
-  { id: 'classified',    label: 'Classifying Query',     icon: '🧠' },
-  { id: 'planned',       label: 'Planning Search',       icon: '📋' },
-  { id: 'fetching',      label: 'Fetching Medical Data', icon: '🌐' },
-  { id: 'evaluated',     label: 'Evaluating Sources',    icon: '⚖️' },
-  { id: 'synthesizing',  label: 'Synthesizing Answer',   icon: '✍️' },
+  { id: 'safety_check',  label: 'Safety Check'         },
+  { id: 'cache_check',   label: 'Memory Check'          },
+  { id: 'classified',    label: 'Classifying Query'     },
+  { id: 'planned',       label: 'Planning Search'       },
+  { id: 'fetching',      label: 'Fetching Medical Data' },
+  { id: 'evaluated',     label: 'Evaluating Sources'    },
+  { id: 'synthesizing',  label: 'Synthesizing Answer'   },
 ];
 
 export default function StreamingProgress({ stage, completedStages, stageMessage }: Props) {
@@ -66,7 +66,7 @@ export default function StreamingProgress({ stage, completedStages, stageMessage
                              : '#94a3b8',
                     }}
                   >
-                    {s.icon} {s.label}
+                    {s.label}
                   </span>
                   {active && stageMessage && (
                     <p className="text-xs text-slate-400 mt-0.5">{stageMessage}</p>
