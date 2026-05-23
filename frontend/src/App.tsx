@@ -11,6 +11,7 @@ import Disclaimer from './components/Disclaimer';
 import LoadingSpinner from './components/LoadingSpinner';
 import StreamingProgress from './components/StreamingProgress';
 import IndiaContext from './components/IndiaContext';
+import DangerousDifferentials from './components/DangerousDifferentials';
 import Dashboard from './pages/Dashboard';
 import Reports from './pages/Reports';
 import { useAnalyze } from './hooks/useAnalyze';
@@ -206,6 +207,13 @@ export default function App() {
                 />
 
                 <RedFlags redFlags={result.red_flags || []} />
+
+                {result.dangerous_differentials &&
+                  result.dangerous_differentials.length > 0 && (
+                    <DangerousDifferentials
+                      differentials={result.dangerous_differentials}
+                    />
+                  )}
 
                 <DrugSafety drugSafety={result.drug_safety} />
 

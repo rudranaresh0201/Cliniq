@@ -46,4 +46,5 @@ export interface AnalyzeResponse {
   cached: boolean;
   error?: string;
   india_context?: IndiaContextData;
+  dangerous_differentials?: string[];
 }
