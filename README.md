@@ -9,4 +9,4 @@ pinned: false
 
 # ClinIQ Backend
 India-aware medical intelligence API powered by PubMed + Groq.
-<!-- redeploy: 2026-05-23T19:01:57Z -->
+<!-- redeploy: 2026-05-23T19:19:26Z -->
