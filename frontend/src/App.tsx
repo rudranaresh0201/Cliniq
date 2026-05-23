@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Lottie from 'lottie-react';
 import Header from './components/Header';
 import SymptomForm from './components/SymptomForm';
 import TriageCard from './components/TriageCard';
@@ -40,8 +39,6 @@ const FEATURES = [
   { icon: '⚡', label: 'Instant Analysis' },
   { icon: '📚', label: '35M+ Papers'      },
 ];
-
-const MEDICAL_ANIMATION_URL = 'https://assets2.lottiefiles.com/packages/lf20_5njp3vgg.json';
 
 const HEADLINES = [
   'Medical Intelligence You Can Trust',
@@ -86,17 +83,9 @@ function AnimatedBackground() {
 }
 
 function HeroSection() {
-  const [animationData, setAnimationData] = useState<any>(null);
   const [headlineIndex, setHeadlineIndex] = useState(0);
   const [displayed, setDisplayed]         = useState('');
   const [typing, setTyping]               = useState(true);
-
-  useEffect(() => {
-    fetch(MEDICAL_ANIMATION_URL)
-      .then(r => r.json())
-      .then(setAnimationData)
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     const full = HEADLINES[headlineIndex];
@@ -208,11 +197,72 @@ function HeroSection() {
           </div>
         </div>
 
-        {/* Right side: Lottie animation */}
-        <div className="hidden md:flex items-center justify-center w-80">
-          {animationData && (
-            <Lottie animationData={animationData} loop={true} style={{ width: 300, height: 300 }} />
-          )}
+        {/* Right side: pure CSS animated medical SVG */}
+        <div className="hidden md:flex items-center justify-center w-80 shrink-0">
+          <svg viewBox="0 0 300 300" width="300" height="300" xmlns="http://www.w3.org/2000/svg">
+            <style>{`
+              @keyframes pulse-ring {
+                0% { transform: scale(0.95); opacity: 0.7; }
+                50% { transform: scale(1.05); opacity: 1; }
+                100% { transform: scale(0.95); opacity: 0.7; }
+              }
+              @keyframes float-up {
+                0%, 100% { transform: translateY(0px); }
+                50% { transform: translateY(-10px); }
+              }
+              @keyframes spin-slow {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+              }
+              .svg-pulse { animation: pulse-ring 3s ease-in-out infinite; }
+              .svg-float { animation: float-up 4s ease-in-out infinite; }
+              .svg-float-delay { animation: float-up 4s ease-in-out infinite 1s; }
+              .svg-spin {
+                animation: spin-slow 20s linear infinite;
+                transform-origin: 150px 150px;
+              }
+            `}</style>
+
+            {/* Outer rotating dashed ring */}
+            <circle cx="150" cy="150" r="120" fill="none"
+              stroke="rgba(255,149,0,0.15)" strokeWidth="1"
+              strokeDasharray="8 4" className="svg-spin"/>
+
+            {/* Middle ring */}
+            <circle cx="150" cy="150" r="90" fill="none"
+              stroke="rgba(255,149,0,0.1)" strokeWidth="1"/>
+
+            {/* Center glow */}
+            <circle cx="150" cy="150" r="60"
+              fill="rgba(255,149,0,0.05)" className="svg-pulse"/>
+
+            {/* Medical cross */}
+            <g className="svg-float" style={{ transformOrigin: '150px 150px' }}>
+              <rect x="135" y="110" width="30" height="80" rx="8"
+                fill="rgba(255,149,0,0.8)"/>
+              <rect x="110" y="135" width="80" height="30" rx="8"
+                fill="rgba(255,149,0,0.8)"/>
+            </g>
+
+            {/* Floating ambient dots */}
+            <circle cx="80"  cy="100" r="4" fill="rgba(255,149,0,0.6)" className="svg-float-delay"/>
+            <circle cx="220" cy="120" r="3" fill="rgba(255,149,0,0.4)" className="svg-float"/>
+            <circle cx="90"  cy="200" r="5" fill="rgba(255,149,0,0.3)" className="svg-float-delay"/>
+            <circle cx="210" cy="190" r="4" fill="rgba(255,149,0,0.5)" className="svg-float"/>
+            <circle cx="150" cy="60"  r="3" fill="rgba(255,149,0,0.4)" className="svg-float-delay"/>
+
+            {/* Heartbeat line */}
+            <polyline
+              points="60,160 80,160 90,140 100,175 110,145 120,160 140,160"
+              fill="none" stroke="rgba(6,214,160,0.6)" strokeWidth="2"
+              strokeLinecap="round" strokeLinejoin="round"
+              className="svg-float"/>
+
+            {/* DNA-style accent dots */}
+            <circle cx="240" cy="150" r="3" fill="rgba(6,214,160,0.5)" className="svg-float"/>
+            <circle cx="250" cy="140" r="2" fill="rgba(6,214,160,0.4)" className="svg-float-delay"/>
+            <circle cx="245" cy="165" r="2" fill="rgba(6,214,160,0.3)" className="svg-float"/>
+          </svg>
         </div>
       </div>
     </div>
