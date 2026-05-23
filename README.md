@@ -1,6 +1,6 @@
 ---
 title: ClinIQ Medical RAG Backend
-emoji: H
+emoji: 🏥
 colorFrom: green
 colorTo: blue
 sdk: docker
