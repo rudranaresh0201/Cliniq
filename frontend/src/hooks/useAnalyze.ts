@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { AnalyzeRequest, AnalyzeResponse } from '../types';
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 export function useAnalyze() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -14,9 +16,8 @@ export function useAnalyze() {
     try {
       const useV2 = Boolean(request.patient_id);
       const url = useV2
-        ? 'http://127.0.0.1:8000/api/analyze/v2'
-        : 'http://127.0.0.1:8000/api/analyze';
-      // v2 model field is user_id, not patient_id
+        ? `${BASE_URL}/api/analyze/v2`
+        : `${BASE_URL}/api/analyze`;
       const body = useV2
         ? { query: request.query, user_id: request.patient_id, state: request.state }
         : request;

@@ -47,7 +47,8 @@ export function useAnalyzeStream() {
     if (gender) params.set('gender', gender);
     if (state) params.set('state', state);
 
-    const url = `http://127.0.0.1:8000/api/analyze/stream?${params.toString()}`;
+    const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+    const url = `${BASE_URL}/api/analyze/stream?${params.toString()}`;
     const es = new EventSource(url);
     esRef.current = es;
 
