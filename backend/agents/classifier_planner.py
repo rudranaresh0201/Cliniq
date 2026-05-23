@@ -2,6 +2,7 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
+import json
 from backend.llm.router import complete, parse_json
 
 COMBINED_PROMPT = """You are a medical query analyst and search strategist.
@@ -9,17 +10,26 @@ COMBINED_PROMPT = """You are a medical query analyst and search strategist.
 Patient Query: {query}
 Patient Context: {patient_context}
 
+Clinical Pre-Analysis:
+{clinical_reasoning}
+
+The clinical reasoner has identified:
+- Discriminating symptom: {discriminating_symptom}
+- Unifying hypothesis: {unifying_hypothesis}
+- Primary body system: {primary_system}
+- Must not miss: {must_not_miss}
+
 In ONE response, do two things:
 
 1. CLASSIFY: What type of query is this?
 Types: emergency, drug_interaction, symptoms,
        outbreak, diagnosis_support, research, general
 
-2. PLAN: What should we search for?
-Generate 3 targeted PubMed search queries.
-For symptoms: include differential diagnosis terms.
-For drug queries: include drug names + "interaction".
-For India queries: include India-specific terms.
+2. PLAN: Generate 3 highly targeted PubMed search queries.
+Search 1: Target the unifying hypothesis directly
+Search 2: Target the discriminating symptom + patient context
+Search 3: Target the must-not-miss diagnosis
+Do NOT generate generic searches if specific ones are possible.
 
 Return ONLY valid JSON:
 {{
@@ -48,19 +58,37 @@ FALLBACK = {
 async def classify_and_plan(
     query: str,
     patient_context: dict | None = None,
+    clinical_reasoning: dict | None = None,
 ) -> dict:
-    """Single LLM call replacing separate classify_query + plan_search calls."""
+    """Single LLM call: classifies query and plans evidence searches,
+    informed by clinical pre-analysis when available."""
     if patient_context is None:
         patient_context = {}
+    if clinical_reasoning is None:
+        clinical_reasoning = {}
 
     context_str = (
         f"Age: {patient_context.get('age', 'unknown')}, "
         f"State: {patient_context.get('state', 'Maharashtra')}"
     )
 
+    reasoning_summary = clinical_reasoning.get("reasoning_summary", "Not available")
+    discriminating = clinical_reasoning.get("discriminating_symptom", "")
+    hypothesis = clinical_reasoning.get("unifying_hypothesis", "")
+    system = clinical_reasoning.get("primary_system", "general")
+    must_not_miss = clinical_reasoning.get("must_not_miss", "")
+
     try:
         raw, _ = await complete(
-            COMBINED_PROMPT.format(query=query, patient_context=context_str),
+            COMBINED_PROMPT.format(
+                query=query,
+                patient_context=context_str,
+                clinical_reasoning=reasoning_summary,
+                discriminating_symptom=discriminating,
+                unifying_hypothesis=hypothesis,
+                primary_system=system,
+                must_not_miss=must_not_miss,
+            ),
             temperature=0.15,
             max_tokens=400,
         )
@@ -70,7 +98,6 @@ async def classify_and_plan(
             result["searches"] = [query]
         result["searches"] = result["searches"][:3]
 
-        # Ensure all required keys are present
         result.setdefault("query_type", "general")
         result.setdefault("confidence", 0.5)
         result.setdefault("requires_drug_check", False)

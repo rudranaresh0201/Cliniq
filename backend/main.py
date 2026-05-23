@@ -16,6 +16,7 @@ from config import MAX_RETRY_LOOPS
 from backend.safety.redflags import check_emergency
 from backend.memory.rag import check_cache, store_result, get_cache_stats
 from backend.agents.classifier_planner import classify_and_plan
+from backend.agents.clinical_reasoner import reason_clinically
 from backend.agents.evaluator import evaluate
 from backend.agents.synthesizer import synthesize, DISCLAIMER
 from backend.agents.faithfulness import check_faithfulness
@@ -124,13 +125,24 @@ async def _run_pipeline(
     await _emit("cache_miss", {"status": "No cache hit — starting full retrieval"})
 
     # ------------------------------------------------------------------
-    # Stage 3+4: Combined classify + plan (single LLM call)
+    # Stage 3: Clinical reasoning — deep first-principles analysis
+    # ------------------------------------------------------------------
+    await _emit("reasoning", {"status": "Reasoning clinically…"})
+    india_ctx = get_india_context(state)
+    clinical_reasoning = await reason_clinically(
+        query=query,
+        patient_context=patient_context,
+        india_context=india_ctx,
+    )
+
+    # ------------------------------------------------------------------
+    # Stage 4+5: Combined classify + plan (informed by clinical reasoning)
     # ------------------------------------------------------------------
     await _emit("classifying", {"status": "Classifying query and planning search…"})
     combined = await classify_and_plan(query, {
         "age": age,
         "state": state,
-    })
+    }, clinical_reasoning=clinical_reasoning)
     await _emit("classified", {
         "query_type": combined["query_type"],
         "confidence": combined["confidence"],
@@ -195,9 +207,9 @@ async def _run_pipeline(
     # Stage 7: Synthesis
     # ------------------------------------------------------------------
     await _emit("synthesizing", {"status": "Synthesizing final answer…"})
-    india_ctx = get_india_context(state)
     result = await synthesize(
-        query, accumulated, combined["query_type"], patient_context, india_ctx
+        query, accumulated, combined["query_type"], patient_context,
+        india_ctx, clinical_reasoning=clinical_reasoning,
     )
 
     # ------------------------------------------------------------------
@@ -219,6 +231,14 @@ async def _run_pipeline(
     contradiction_check = await check_contradictions(query, result)
     if contradiction_check.get("contradictions_found"):
         result["contradictions"] = contradiction_check.get("contradictions", [])
+
+    # Expose clinical reasoning summary in result
+    result["clinical_reasoning"] = {
+        "pattern": clinical_reasoning.get("clinical_pattern", ""),
+        "unifying_hypothesis": clinical_reasoning.get("unifying_hypothesis", ""),
+        "most_important_question": clinical_reasoning.get("most_important_question", ""),
+        "reasoning_summary": clinical_reasoning.get("reasoning_summary", ""),
+    }
 
     # ------------------------------------------------------------------
     # Stage 9: Cache storage

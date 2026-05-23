@@ -21,90 +21,73 @@ DISCLAIMER = (
     "medical decisions. In case of emergency, call 112 immediately."
 )
 
-SYNTHESIZER_PROMPT = """You are a senior Indian general physician with 15 years of clinical experience in urban India.
-You think like a real doctor, not a medical textbook.
+SYNTHESIZER_PROMPT = """You are a senior clinician generating a differential diagnosis.
+You have access to clinical pre-analysis and medical literature.
 
 Patient Query: {query}
-Query Type: {query_type}
 Patient Context: {patient_context}
-India Clinical Context: {india_context}
+Regional Context: {india_context}
 
-Medical Evidence:
+Clinical Pre-Analysis (read this carefully):
+{clinical_reasoning}
+
+Medical Evidence Retrieved:
 {evidence_summary}
 
-TRIAGE RULES — follow strictly:
-EMERGENCY: chest pain + breathlessness, unconscious, stroke signs,
-  severe bleeding, anaphylaxis, child with seizure NOW
-  → patient must go to hospital immediately
+YOUR TASK:
+Generate the most clinically accurate differential diagnosis
+by combining:
+1. The pre-analysis reasoning
+2. The retrieved medical evidence
+3. Your clinical judgment
 
-URGENT: symptoms for 3+ days worsening, high fever >103F in child,
-  dengue warning signs (bleeding, severe pain), suspected malaria,
-  diabetic with infection, jaundice with fever
-  → see doctor today or tomorrow
+REASONING APPROACH:
+- Start from the unifying hypothesis in pre-analysis
+- Use evidence to confirm or refute it
+- Consider the discriminating symptom when ranking
+- The must-not-miss diagnosis goes in dangerous_differentials
+- Confidence reflects how well evidence supports each diagnosis
 
-ROUTINE: mild fever < 3 days, common cold, minor infections,
-  known chronic condition stable, asking about medications
-  → can wait 2-3 days, home care first
+TRIAGE LOGIC:
+EMERGENCY → immediately life-threatening RIGHT NOW
+URGENT → needs doctor today, worsening or high-risk
+ROUTINE → stable, can wait 2-3 days
+INFORMATIONAL → educational query, no active illness
 
-INFORMATIONAL: general health questions, drug information,
-  diet queries, preventive health
-  → no urgent action needed
+CONFIDENCE LOGIC:
+High evidence match + common disease = 65-85%
+Moderate evidence + fits pattern = 45-65%
+Low evidence or atypical = 25-45%
+Must-not-miss with weak evidence = 15-30%
+Never exceed 85%
 
-INDIA CLINICAL REALITY — think like this:
-- Fever + body pain + rash in Mumbai monsoon = dengue first
-- Fever + chills + sweating = malaria until proven otherwise
-- Fever + vomiting + loose stools = gastroenteritis or typhoid
-- Child fever for 2 days = viral fever most likely
-- Cough + fever + weight loss = TB must be considered
-- Fever + headache in child = viral first, meningitis only if
-  neck stiffness or photophobia mentioned
-- Joint pain + rash + fever = chikungunya or dengue
-- Jaundice + fever = hepatitis A/E or leptospirosis
-
-CONFIDENCE CALIBRATION:
-- Viral fever for generic fever symptoms: 70-80%
-- Dengue in monsoon Mumbai with rash: 75-85%
-- Malaria with periodic fever + chills: 70-80%
-- Meningitis with only fever + headache (no neck stiffness): MAX 20%
-- Any rare disease with generic symptoms: MAX 25%
-- Never exceed 85% for any condition
-- If symptoms are very mild and short duration → lower confidence
-
-CONDITIONS RULES:
-- List maximum 3-4 conditions
-- Common Indian diseases MUST dominate for generic symptoms
-- Rare conditions only if patient has SPECIFIC symptoms for them
-- Order by confidence descending
-
-DANGEROUS CONDITIONS RULE:
-- Meningitis, encephalitis, intracranial abscess, myocarditis
-- These go in dangerous_differentials[] NOT in conditions[]
-- EXCEPTION: only put in conditions[] if patient has specific signs
-  (neck stiffness, photophobia, focal neurology, altered consciousness)
-- Always mention them in red_flags[] as "seek emergency if..."
-
-Return ONLY valid JSON — no markdown, no explanation:
+Return ONLY valid JSON:
 {{
   "triage": "<EMERGENCY|URGENT|ROUTINE|INFORMATIONAL>",
   "conditions": [
     {{
-      "name": "<condition name>",
-      "confidence": <integer 10-85>,
-      "evidence": ["<specific evidence>"],
-      "reasoning": "<one line clinical reasoning>"
+      "name": "<diagnosis>",
+      "confidence": <10-85>,
+      "evidence": ["<specific evidence from retrieved papers>"],
+      "reasoning": "<clinical reasoning tying this to patient symptoms>",
+      "explains": "<which symptoms this diagnosis accounts for>"
     }}
   ],
-  "immediate_actions": ["<specific action>"],
-  "recommended_tests": ["<specific test>"],
+  "immediate_actions": ["<specific actionable step>"],
+  "recommended_tests": ["<specific test with reason>"],
   "drug_safety": {{
     "interactions_found": false,
     "warnings": [],
     "recommendations": []
   }},
-  "red_flags": ["<go to hospital immediately if: specific sign>"],
-  "dangerous_differentials": ["<serious condition to rule out>"],
-  "follow_up_questions": ["<question to help narrow diagnosis>"],
-  "patient_summary": "<plain English, reassuring but honest, 2-3 sentences>",
+  "red_flags": ["<seek emergency if: specific sign develops>"],
+  "dangerous_differentials": ["<must-not-miss diagnosis>"],
+  "follow_up_questions": [
+    "{most_important_question}",
+    "<second question that narrows diagnosis>"
+  ],
+  "patient_summary": "<2-3 sentences plain English covering all symptoms>",
+  "clinical_reasoning_used": "{reasoning_summary}",
   "disclaimer": "{disclaimer}"
 }}"""
 
@@ -196,6 +179,18 @@ def _format_india_context(india_context: dict) -> str:
         parts.append(note)
     return " ".join(parts)
 
+def _format_clinical_reasoning(reasoning: dict) -> str:
+    if not reasoning:
+        return "No pre-analysis available."
+    return (
+        f"Pre-analysis summary: {reasoning.get('reasoning_summary', '')}\n"
+        f"Discriminating symptom: {reasoning.get('discriminating_symptom', '')}\n"
+        f"Unifying hypothesis: {reasoning.get('unifying_hypothesis', '')}\n"
+        f"Primary system involved: {reasoning.get('primary_system', '')}\n"
+        f"Must not miss: {reasoning.get('must_not_miss', '')}\n"
+        f"Most important follow-up: {reasoning.get('most_important_question', '')}\n"
+        f"Prior diagnoses considered: {json.dumps(reasoning.get('top_prior_diagnoses', []))}"
+    )
 
 def _validate_result(result: dict) -> dict:
     conditions = []
@@ -206,6 +201,7 @@ def _validate_result(result: dict) -> dict:
                 "confidence": max(0, min(100, int(c.get("confidence", 0)))),
                 "evidence": c.get("evidence", []) if isinstance(c.get("evidence"), list) else [],
                 "reasoning": str(c.get("reasoning", "")),
+                "explains": str(c.get("explains", "")),
             })
     result["conditions"] = conditions if conditions else FALLBACK["conditions"]
     result["disclaimer"] = DISCLAIMER
@@ -217,6 +213,7 @@ def _validate_result(result: dict) -> dict:
     result.setdefault("dangerous_differentials", [])
     result.setdefault("follow_up_questions", [])
     result.setdefault("patient_summary", "Analysis complete. Please consult a healthcare provider.")
+    result.setdefault("clinical_reasoning_used", "")
     return result
 
 
@@ -226,19 +223,27 @@ async def synthesize(
     query_type: str,
     patient_context: dict,
     india_context: dict = {},
+    clinical_reasoning: dict = {},
 ) -> dict:
     try:
         client = _get_client()
+        most_important_q = clinical_reasoning.get(
+            "most_important_question", "Can you describe your symptoms?"
+        )
+        reasoning_summary = clinical_reasoning.get("reasoning_summary", "")
+
         response = await client.chat.completions.create(
             model=GROQ_MODEL,
             messages=[{
                 "role": "user",
                 "content": SYNTHESIZER_PROMPT.format(
                     query=query,
-                    query_type=query_type,
                     patient_context=_build_patient_context(patient_context),
                     evidence_summary=_build_evidence_summary(all_results),
                     india_context=_format_india_context(india_context),
+                    clinical_reasoning=_format_clinical_reasoning(clinical_reasoning),
+                    most_important_question=most_important_q,
+                    reasoning_summary=reasoning_summary,
                     disclaimer=DISCLAIMER,
                 )
             }],
