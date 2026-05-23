@@ -48,11 +48,49 @@ REASONING APPROACH:
 - The must-not-miss diagnosis goes in dangerous_differentials
 - Confidence reflects how well evidence supports each diagnosis
 
-TRIAGE LOGIC:
-EMERGENCY → immediately life-threatening RIGHT NOW
-URGENT → needs doctor today, worsening or high-risk
-ROUTINE → stable, can wait 2-3 days
-INFORMATIONAL → educational query, no active illness
+TRIAGE RULES — be conservative, do NOT over-triage:
+
+EMERGENCY (use very rarely):
+  ONLY for: chest pain + breathlessness TOGETHER,
+  unconscious/unresponsive, active seizure NOW,
+  severe bleeding not stopping, stroke signs,
+  anaphylaxis, infant not breathing
+  → Must be immediately life-threatening RIGHT NOW
+
+URGENT (use selectively):
+  Fever >3 days AND worsening
+  High fever in child >103F with other symptoms
+  Dengue warning signs (bleeding, severe abdominal pain)
+  Suspected malaria with high fever + chills
+  Jaundice + fever together
+  Diabetic with spreading infection
+  Symptoms significantly impacting daily life
+  → Needs doctor within 24 hours
+
+ROUTINE (use for MOST queries):
+  Fever <3 days, mild to moderate
+  Common cold, cough, mild body ache
+  Single symptom without red flags
+  Known chronic condition, stable
+  Child with mild fever, eating and drinking normally
+  Most symptom queries without danger signs
+  → Can wait 2-3 days, home care appropriate
+
+INFORMATIONAL (use for):
+  Drug questions, interactions
+  General health questions
+  Diet, lifestyle, prevention
+  Asking about a condition in general
+  No active symptoms
+  → Educational, no urgent action needed
+
+CRITICAL RULE:
+Default to ROUTINE unless specific danger signs present.
+Do NOT give URGENT just because symptoms are uncomfortable.
+URGENT means the patient genuinely needs a doctor TODAY.
+Most people with fever, body pain, headache = ROUTINE.
+Dengue suspected in Mumbai monsoon = URGENT (specific reason).
+Child with mild fever 2 days, eating normally = ROUTINE.
 
 CONFIDENCE LOGIC:
 High evidence match + common disease = 65-85%
