@@ -19,5 +19,7 @@ jobs:
         run: |
           git config user.email "deploy@cliniq.ai"
           git config user.name "ClinIQ Deploy"
+          cp SPACE_README.md README.md
+          git add README.md
           git remote add hf https://rudra201:$HF_TOKEN@huggingface.co/spaces/rudra201/cliniq-backend || true
           git push hf main --force
