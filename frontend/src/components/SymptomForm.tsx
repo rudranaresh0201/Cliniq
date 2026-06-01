@@ -30,12 +30,17 @@ const GLASS_INPUT: React.CSSProperties = {
 };
 
 export default function SymptomForm({ onSubmit, loading, prefillQuery }: Props) {
-  const [patientId, setPatientId]     = useState('');
-  const [query, setQuery]             = useState('');
+  const [patientId, setPatientId] = useState<string>(() => localStorage.getItem('cliniq_patient_id') || '');
+  const [query, setQuery]         = useState('');
 
   useEffect(() => {
     if (prefillQuery) setQuery(prefillQuery);
   }, [prefillQuery]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('cliniq_patient_id');
+    if (stored) setPatientId(stored);
+  }, []);
   const [age, setAge]                 = useState('');
   const [gender, setGender]           = useState('');
   const [state, setState]             = useState('Maharashtra');
@@ -134,28 +139,6 @@ export default function SymptomForm({ onSubmit, loading, prefillQuery }: Props) 
             <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
               Describe your symptoms — ClinIQ will analyze them with PubMed-backed AI.
             </p>
-          </div>
-
-          {/* Patient ID */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
-              Patient ID <span className="normal-case font-normal" style={{ color: 'rgba(255,255,255,0.25)' }}>(optional)</span>
-            </label>
-            <input
-              type="text"
-              value={patientId}
-              onChange={(e) => setPatientId(e.target.value)}
-              placeholder="For longitudinal tracking"
-              style={GLASS_INPUT}
-              onFocus={(e) => {
-                e.target.style.borderColor = 'rgba(255,149,0,0.5)';
-                e.target.style.boxShadow = '0 0 0 3px rgba(255,149,0,0.1)';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(255,255,255,0.1)';
-                e.target.style.boxShadow = 'none';
-              }}
-            />
           </div>
 
           {/* Symptom textarea */}

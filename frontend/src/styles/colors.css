@@ -1,0 +1,474 @@
+/* =============================================================================
+   ClinIQ 2.0 — Design System: Color Tokens
+   Single source of truth for every color decision in the app.
+
+   Structure
+   ─────────
+   1.  Backgrounds       — 8-stop depth stack, void → overlay
+   2.  Borders           — opacity-based, context-aware
+   3.  Accent system     — violet spectrum + glow intensities
+   4.  Semantic states   — critical / warning / stable
+   5.  Text              — 4-tier readability hierarchy
+   6.  Gradients         — risk-keyed radial overlays (animated)
+   7.  Shadows           — derived from glow tokens
+   8.  Transitions       — shared timing tokens
+   9.  Composite tokens  — glassmorphism, surface elevations
+   10. Utility classes   — glass, surface, text, state, gradient
+   11. Keyframes         — gradient breathing, glow pulse
+   12. Backward-compat   — aliases for legacy --border / --shadow refs
+
+   Rule: never reference a Tailwind color utility where a token exists.
+   ============================================================================= */
+
+
+/* =============================================================================
+   SECTION 1 — TOKEN DEFINITIONS (:root)
+   ============================================================================= */
+
+:root {
+
+  /* ── 1. BACKGROUNDS — layered depth system ──────────────────────────────── */
+
+  --bg-void:          #050507;         /* deepest — page base, absolute floor   */
+  --bg-base:          #0A0A0D;         /* app background, body fill             */
+  --bg-surface:       #0F0F14;         /* card base layer                       */
+  --bg-elevated:      #14141A;         /* raised card, secondary panel          */
+  --bg-overlay:       #1A1A24;         /* modals, drawers, popovers             */
+  --bg-hover:         #1F1F2C;         /* hover state overlay                   */
+  --bg-glass:         rgba(15,15,20,0.6);       /* glassmorphism base           */
+  --bg-glass-light:   rgba(255,255,255,0.03);   /* ultra-subtle fill on glass   */
+
+  /* ── 2. BORDERS — subtle, alive ─────────────────────────────────────────── */
+
+  --border-subtle:    rgba(255,255,255,0.04);   /* barely-there dividers        */
+  --border-default:   rgba(255,255,255,0.08);   /* standard component border    */
+  --border-strong:    rgba(255,255,255,0.14);   /* emphasis, active state       */
+  --border-accent:    rgba(124,101,246,0.40);   /* focused / accent component   */
+
+  /* ── 3. ACCENT SYSTEM — violet spectrum ─────────────────────────────────── */
+
+  --accent:           #7C65F6;                  /* primary brand violet         */
+  --accent-bright:    #9B87FF;                  /* highlights, hover            */
+  --accent-dim:       #5B4CC4;                  /* depressed, inactive          */
+  --accent-glow:      rgba(124,101,246,0.15);   /* subtle ambient glow          */
+  --accent-glow-md:   rgba(124,101,246,0.25);   /* medium — focus rings, hover  */
+  --accent-glow-lg:   rgba(124,101,246,0.40);   /* large — selected state       */
+
+  /* ── 4. SEMANTIC STATES ─────────────────────────────────────────────────── */
+
+  --critical:         #FF4444;
+  --critical-glow:    rgba(255,68,68,0.20);
+  --critical-dim:     rgba(255,68,68,0.10);
+
+  --warning:          #F59E0B;
+  --warning-glow:     rgba(245,158,11,0.20);
+  --warning-dim:      rgba(245,158,11,0.10);
+
+  --stable:           #22C55E;
+  --stable-glow:      rgba(34,197,94,0.20);
+  --stable-dim:       rgba(34,197,94,0.10);
+
+  /* ── 5. TEXT — 4-tier readability hierarchy ─────────────────────────────── */
+
+  --text-primary:     #F0F0F4;         /* headings, primary content             */
+  --text-secondary:   #8B8B99;         /* body copy, descriptions               */
+  --text-muted:       #4A4A5A;         /* placeholders, disabled, timestamps    */
+  --text-accent:      #9B87FF;         /* links, interactive labels             */
+
+  /* ── 6. GRADIENT BACKGROUNDS — risk-keyed, animated ────────────────────── */
+  /* Applied as background-image on top of a solid --bg-* fill.               */
+  /* Use with .gradient-* utility classes or directly as background-image.    */
+
+  --gradient-critical: radial-gradient(
+    ellipse 80% 40% at 50% 0%,
+    rgba(255,68,68,0.12) 0%,
+    transparent 70%
+  );
+
+  --gradient-warning: radial-gradient(
+    ellipse 80% 40% at 50% 0%,
+    rgba(245,158,11,0.10) 0%,
+    transparent 70%
+  );
+
+  --gradient-stable: radial-gradient(
+    ellipse 80% 40% at 50% 0%,
+    rgba(34,197,94,0.08) 0%,
+    transparent 70%
+  );
+
+  --gradient-accent: radial-gradient(
+    ellipse 80% 40% at 50% 0%,
+    rgba(124,101,246,0.12) 0%,
+    transparent 70%
+  );
+
+  /* ── 7. SHADOWS — derived from glow tokens ──────────────────────────────── */
+
+  --shadow-xs:       0 1px  3px rgba(0,0,0,0.4);
+  --shadow-sm:       0 2px  8px rgba(0,0,0,0.5);
+  --shadow-md:       0 4px 16px rgba(0,0,0,0.6);
+  --shadow-lg:       0 8px 32px rgba(0,0,0,0.7);
+
+  --shadow-accent:   0 0 20px var(--accent-glow),
+                     0 0 40px var(--accent-glow);
+  --shadow-accent-lg:0 0 40px var(--accent-glow-md),
+                     0 0 80px var(--accent-glow);
+
+  --shadow-critical: 0 0 20px var(--critical-glow),
+                     0 0 40px var(--critical-dim);
+  --shadow-warning:  0 0 20px var(--warning-glow),
+                     0 0 40px var(--warning-dim);
+  --shadow-stable:   0 0 20px var(--stable-glow),
+                     0 0 40px var(--stable-dim);
+
+  /* ── 8. TRANSITIONS — shared timing tokens ──────────────────────────────── */
+
+  --ease-out:        cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out:     cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring:     cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --duration-fast:   120ms;
+  --duration-base:   200ms;
+  --duration-slow:   350ms;
+
+  --transition-base: var(--duration-base) var(--ease-out);
+  --transition-slow: var(--duration-slow) var(--ease-out);
+
+  /* ── 9. COMPOSITE TOKENS ─────────────────────────────────────────────────── */
+  /* Glassmorphism recipe — apply via .glass utility class below.              */
+  /* background:       var(--bg-glass)                                         */
+  /* backdrop-filter:  blur(20px) saturate(180%)                               */
+  /* border:           1px solid var(--border-subtle)                          */
+
+  --glass-blur:      blur(20px) saturate(180%);
+  --glass-blur-sm:   blur(12px) saturate(160%);
+  --glass-blur-lg:   blur(32px) saturate(200%);
+
+  --radius-sm:       6px;
+  --radius-md:       10px;
+  --radius-lg:       14px;
+  --radius-xl:       20px;
+  --radius-2xl:      28px;
+  --radius-pill:     9999px;
+
+}
+
+
+/* =============================================================================
+   SECTION 2 — UTILITY CLASSES
+   Named with a single flat namespace. Safe to compose with Tailwind layout
+   utilities (flex, grid, p-*, m-*) — these only set color/visual properties.
+   ============================================================================= */
+
+
+/* ── 2a. Glassmorphism ────────────────────────────────────────────────────── */
+
+.glass {
+  background:         var(--bg-glass);
+  backdrop-filter:    var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border:             1px solid var(--border-subtle);
+}
+
+.glass-sm {
+  background:         var(--bg-glass);
+  backdrop-filter:    var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  border:             1px solid var(--border-subtle);
+}
+
+.glass-lg {
+  background:         var(--bg-glass);
+  backdrop-filter:    var(--glass-blur-lg);
+  -webkit-backdrop-filter: var(--glass-blur-lg);
+  border:             1px solid var(--border-default);
+}
+
+.glass-light {
+  background:         var(--bg-glass-light);
+  backdrop-filter:    var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border:             1px solid var(--border-subtle);
+}
+
+
+/* ── 2b. Surface layers ───────────────────────────────────────────────────── */
+
+.surface-void     { background-color: var(--bg-void); }
+.surface-base     { background-color: var(--bg-base); }
+.surface-default  { background-color: var(--bg-surface); }
+.surface-elevated { background-color: var(--bg-elevated); }
+.surface-overlay  { background-color: var(--bg-overlay); }
+
+
+/* ── 2c. Border utilities ─────────────────────────────────────────────────── */
+
+.border-subtle  { border-color: var(--border-subtle); }
+.border-default { border-color: var(--border-default); }
+.border-strong  { border-color: var(--border-strong); }
+.border-accent  { border-color: var(--border-accent); }
+
+
+/* ── 2d. Text utilities ───────────────────────────────────────────────────── */
+
+.text-primary   { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted     { color: var(--text-muted); }
+.text-accent    { color: var(--text-accent); }
+.text-critical  { color: var(--critical); }
+.text-warning   { color: var(--warning); }
+.text-stable    { color: var(--stable); }
+
+
+/* ── 2e. Semantic state classes ───────────────────────────────────────────── */
+/* Apply to a card or container to set its ambient risk color.                 */
+
+.state-critical {
+  background-color: var(--critical-dim);
+  border-color:     rgba(255,68,68,0.25);
+  color:            var(--critical);
+}
+
+.state-warning {
+  background-color: var(--warning-dim);
+  border-color:     rgba(245,158,11,0.25);
+  color:            var(--warning);
+}
+
+.state-stable {
+  background-color: var(--stable-dim);
+  border-color:     rgba(34,197,94,0.20);
+  color:            var(--stable);
+}
+
+.state-accent {
+  background-color: var(--accent-glow);
+  border-color:     var(--border-accent);
+  color:            var(--accent-bright);
+}
+
+
+/* ── 2f. Gradient overlays ────────────────────────────────────────────────── */
+/* These are background-image overlays. Pair with a solid background-color.   */
+/* Example:  background: var(--bg-surface); + class gradient-critical          */
+
+.gradient-critical {
+  background-image: var(--gradient-critical);
+}
+
+.gradient-warning {
+  background-image: var(--gradient-warning);
+}
+
+.gradient-stable {
+  background-image: var(--gradient-stable);
+}
+
+.gradient-accent {
+  background-image: var(--gradient-accent);
+}
+
+/* Animated variants — gradient gently breathes to signal live risk state */
+
+.gradient-critical.animated {
+  animation: breathe-critical 4s var(--ease-in-out) infinite;
+}
+
+.gradient-warning.animated {
+  animation: breathe-warning 5s var(--ease-in-out) infinite;
+}
+
+.gradient-stable.animated {
+  animation: breathe-stable 6s var(--ease-in-out) infinite;
+}
+
+.gradient-accent.animated {
+  animation: breathe-accent 5s var(--ease-in-out) infinite;
+}
+
+
+/* ── 2g. Glow shadows ────────────────────────────────────────────────────── */
+
+.glow-accent    { box-shadow: var(--shadow-accent); }
+.glow-accent-lg { box-shadow: var(--shadow-accent-lg); }
+.glow-critical  { box-shadow: var(--shadow-critical); }
+.glow-warning   { box-shadow: var(--shadow-warning); }
+.glow-stable    { box-shadow: var(--shadow-stable); }
+
+
+/* ── 2h. Focus ring ──────────────────────────────────────────────────────── */
+
+.focus-ring:focus-visible {
+  outline:        2px solid var(--accent);
+  outline-offset: 3px;
+  box-shadow:     0 0 0 4px var(--accent-glow);
+}
+
+.focus-ring-critical:focus-visible {
+  outline:        2px solid var(--critical);
+  outline-offset: 3px;
+  box-shadow:     0 0 0 4px var(--critical-dim);
+}
+
+
+/* ── 2i. Hover surface ───────────────────────────────────────────────────── */
+
+.hover-surface {
+  transition: background-color var(--transition-base),
+              border-color     var(--transition-base);
+}
+
+.hover-surface:hover {
+  background-color: var(--bg-hover);
+  border-color:     var(--border-default);
+}
+
+.hover-lift {
+  transition: transform      var(--transition-base),
+              box-shadow     var(--transition-base);
+}
+
+.hover-lift:hover {
+  transform:  translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+
+/* =============================================================================
+   SECTION 3 — KEYFRAMES
+   ============================================================================= */
+
+
+/* ── Gradient breathing — risk-state ambient animations ─────────────────── */
+/* Opacity pulsing simulates a "live" reading on the card's risk halo.        */
+
+@keyframes breathe-critical {
+  0%, 100% {
+    background-image: radial-gradient(
+      ellipse 80% 40% at 50% 0%,
+      rgba(255,68,68,0.12) 0%,
+      transparent 70%
+    );
+  }
+  50% {
+    background-image: radial-gradient(
+      ellipse 90% 50% at 50% 0%,
+      rgba(255,68,68,0.22) 0%,
+      transparent 75%
+    );
+  }
+}
+
+@keyframes breathe-warning {
+  0%, 100% {
+    background-image: radial-gradient(
+      ellipse 80% 40% at 50% 0%,
+      rgba(245,158,11,0.10) 0%,
+      transparent 70%
+    );
+  }
+  50% {
+    background-image: radial-gradient(
+      ellipse 90% 50% at 50% 0%,
+      rgba(245,158,11,0.18) 0%,
+      transparent 75%
+    );
+  }
+}
+
+@keyframes breathe-stable {
+  0%, 100% {
+    background-image: radial-gradient(
+      ellipse 80% 40% at 50% 0%,
+      rgba(34,197,94,0.08) 0%,
+      transparent 70%
+    );
+  }
+  50% {
+    background-image: radial-gradient(
+      ellipse 90% 50% at 50% 0%,
+      rgba(34,197,94,0.14) 0%,
+      transparent 75%
+    );
+  }
+}
+
+@keyframes breathe-accent {
+  0%, 100% {
+    background-image: radial-gradient(
+      ellipse 80% 40% at 50% 0%,
+      rgba(124,101,246,0.12) 0%,
+      transparent 70%
+    );
+  }
+  50% {
+    background-image: radial-gradient(
+      ellipse 90% 50% at 50% 0%,
+      rgba(124,101,246,0.20) 0%,
+      transparent 75%
+    );
+  }
+}
+
+
+/* ── Accent glow pulse — for badges, indicators, dot markers ─────────────── */
+
+@keyframes glow-pulse-accent {
+  0%, 100% { box-shadow: 0 0 12px var(--accent-glow); }
+  50%       { box-shadow: 0 0 28px var(--accent-glow-md),
+                          0 0 48px var(--accent-glow); }
+}
+
+@keyframes glow-pulse-critical {
+  0%, 100% { box-shadow: 0 0 12px var(--critical-glow); }
+  50%       { box-shadow: 0 0 28px var(--critical-glow),
+                          0 0 48px var(--critical-dim); }
+}
+
+@keyframes glow-pulse-warning {
+  0%, 100% { box-shadow: 0 0 12px var(--warning-glow); }
+  50%       { box-shadow: 0 0 28px var(--warning-glow),
+                          0 0 48px var(--warning-dim); }
+}
+
+
+/* ── Border shimmer — draws attention to an active card edge ─────────────── */
+
+@keyframes border-shimmer {
+  0%   { border-color: var(--border-subtle); }
+  50%  { border-color: var(--border-accent); }
+  100% { border-color: var(--border-subtle); }
+}
+
+.animate-border-shimmer {
+  animation: border-shimmer 3s var(--ease-in-out) infinite;
+}
+
+.animate-glow-accent {
+  animation: glow-pulse-accent 2.5s var(--ease-in-out) infinite;
+}
+
+.animate-glow-critical {
+  animation: glow-pulse-critical 1.8s var(--ease-in-out) infinite;
+}
+
+.animate-glow-warning {
+  animation: glow-pulse-warning 2.2s var(--ease-in-out) infinite;
+}
+
+
+/* =============================================================================
+   SECTION 4 — BACKWARD-COMPAT ALIASES
+   Maps legacy token names still referenced in App.css to the new system.
+   Remove these once App.css is migrated to the v2 token names.
+   ============================================================================= */
+
+:root {
+  --border:       var(--border-default);   /* App.css: #docs, #next-steps, .ticks  */
+  --accent-bg:    var(--accent-glow);      /* App.css: .counter background          */
+  --accent-border:var(--border-accent);    /* App.css: .counter hover border        */
+  --text-h:       var(--text-primary);     /* App.css: link color in #next-steps    */
+  --social-bg:    var(--bg-elevated);      /* App.css: social button background     */
+  --shadow:       var(--shadow-sm);        /* App.css: link hover box-shadow        */
+}

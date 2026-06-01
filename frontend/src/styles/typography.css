@@ -1,0 +1,264 @@
+/* =============================================================================
+   ClinIQ 2.0 — Design System: Typography Tokens
+   Single source of truth for every type decision.
+
+   Structure
+   ─────────
+   1.  Google Fonts       — Inter Variable + JetBrains Mono, full weight range
+   2.  Font-stack tokens  — --font-inter, --font-mono
+   3.  Text scale tokens  — size / weight / tracking / leading per step
+   4.  Mono scale tokens  — dedicated JetBrains Mono scale for lab values
+   5.  Font-feature rules — OpenType features; tabular numerics
+   6.  Base layer         — body, ::selection, code/pre  (Tailwind @layer base)
+   7.  Gradient text      — hero number treatment
+   8.  Prose helper       — longform reading styles
+
+   Consumption pattern
+   ───────────────────
+   • Tailwind utilities:  text-{scale}, font-inter, font-mono, tracking-{name}
+   • CSS variables:       var(--text-heading-size), var(--mono-md-weight), etc.
+   • Component classes:   .typo-{variant}  (defined in tailwind.config.js plugin)
+
+   Rule: no magic numbers in component code — every value must point to a token
+   from this file or from the Tailwind config.
+   ============================================================================= */
+
+
+/* =============================================================================
+   SECTION 1 — GOOGLE FONTS
+   Inter Variable: full optical-size + weight range (100–900, roman + italic)
+   JetBrains Mono: full weight range  (100–800, roman + italic)
+   display=swap eliminates invisible-text flash; fallbacks hold layout.
+   ============================================================================= */
+
+/* Preconnect hints — must precede the @import */
+/* NOTE: preconnect links live in <head> in index.html; kept here as comment
+   reference so the URLs stay co-located with the import.
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>         */
+
+@import url(
+  'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap'
+);
+
+
+/* =============================================================================
+   SECTION 2 — FONT STACK TOKENS
+   ============================================================================= */
+
+:root {
+  --font-inter: 'Inter Variable', 'Inter', system-ui, sans-serif;
+  --font-mono:  'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+
+/* =============================================================================
+   SECTION 3 — TEXT SCALE TOKENS
+   Every axis is its own token so individual overrides never require a rewrite.
+   ============================================================================= */
+
+:root {
+
+  /* ── Sizes ─────────────────────────────────────────────────────────────── */
+
+  --text-hero-size:     clamp(56px, 8vw, 80px);
+  --text-display-size:  clamp(32px, 5vw, 48px);
+  --text-title-size:    28px;
+  --text-heading-size:  20px;
+  --text-body-lg-size:  17px;
+  --text-body-size:     15px;
+  --text-small-size:    13px;
+  --text-caption-size:  11px;
+
+  /* ── Weights ───────────────────────────────────────────────────────────── */
+
+  --text-hero-weight:     700;
+  --text-display-weight:  600;
+  --text-title-weight:    600;
+  --text-heading-weight:  600;
+  --text-body-lg-weight:  400;
+  --text-body-weight:     400;
+  --text-small-weight:    400;
+  --text-caption-weight:  500;
+
+  /* ── Letter-spacing (tracking) ─────────────────────────────────────────── */
+
+  --text-hero-tracking:     -3px;
+  --text-display-tracking:  -2px;
+  --text-title-tracking:    -1px;
+  --text-heading-tracking:  -0.5px;
+  --text-body-tracking:      0px;
+  --text-small-tracking:     0.1px;
+  --text-caption-tracking:   0.5px;
+
+  /* ── Line-heights (leading) ────────────────────────────────────────────── */
+
+  --text-hero-leading:     1.1;
+  --text-display-leading:  1.15;
+  --text-title-leading:    1.3;
+  --text-heading-leading:  1.4;
+  --text-body-lg-leading:  1.7;
+  --text-body-leading:     1.6;
+  --text-small-leading:    1.5;
+  --text-caption-leading:  1.4;
+
+}
+
+
+/* =============================================================================
+   SECTION 4 — MONO SCALE TOKENS  (JetBrains Mono — lab values only)
+   ============================================================================= */
+
+:root {
+
+  /* ── Sizes ─────────────────────────────────────────────────────────────── */
+
+  --mono-hero-size:  48px;
+  --mono-lg-size:    20px;
+  --mono-md-size:    15px;
+  --mono-sm-size:    13px;
+
+  /* ── Weights ───────────────────────────────────────────────────────────── */
+
+  --mono-hero-weight:  700;
+  --mono-lg-weight:    500;
+  --mono-md-weight:    400;
+  --mono-sm-weight:    400;
+
+  /* ── Letter-spacing ────────────────────────────────────────────────────── */
+
+  --mono-hero-tracking:  -1px;
+  --mono-lg-tracking:    -0.3px;
+  --mono-md-tracking:     0px;
+  --mono-sm-tracking:     0px;
+
+  /* ── Line-heights ──────────────────────────────────────────────────────── */
+
+  --mono-hero-leading:  1.1;
+  --mono-lg-leading:    1.4;
+  --mono-md-leading:    1.5;
+  --mono-sm-leading:    1.5;
+
+}
+
+
+/* =============================================================================
+   SECTION 5 — FONT FEATURE SETTINGS
+   Explicit OpenType feature activation. Applied to the elements that need them;
+   not set globally to avoid unintended rendering changes.
+   ============================================================================= */
+
+/*
+  Inter Variable — recommended feature activations:
+  cv01: alternate 'a'   cv02: alternate 'g'
+  cv05: alternate '@'   cv06: alternate '&'
+  ss01: open digits      ss03: curved r
+  These are strictly cosmetic and non-breaking.
+*/
+@layer base {
+
+  body {
+    font-family:               var(--font-inter);
+    font-feature-settings:     'cv01' 1, 'cv02' 1, 'ss01' 1, 'ss03' 1;
+    font-optical-sizing:       auto;
+    -webkit-font-smoothing:    antialiased;
+    -moz-osx-font-smoothing:   grayscale;
+    text-rendering:            optimizeLegibility;
+  }
+
+  /*
+    JetBrains Mono — applied to ALL numeric/mono content:
+    liga=0:  disable code ligatures (cleaner for lab values, not code)
+    zero=1:  slashed zero (prevents 0/O confusion in creatinine readings)
+    tnum:    tabular numerals (columns stay aligned across multiple rows)
+  */
+  .font-mono,
+  [data-variant="value"],
+  [data-variant="mono"] {
+    font-family:           var(--font-mono);
+    font-feature-settings: 'liga' 0, 'zero' 1;
+    font-variant-numeric:  tabular-nums;
+    -webkit-font-smoothing: subpixel-antialiased;
+  }
+
+  /* Headings: tighten tracking further with optical sizing */
+  h1, h2, h3, h4, h5, h6 {
+    font-optical-sizing: auto;
+    font-feature-settings: 'cv01' 1, 'cv02' 1;
+  }
+
+  /* Selection — brand-tinted highlight */
+  ::selection {
+    background-color: rgba(124, 101, 246, 0.25);
+    color:            var(--text-primary, #F0F0F4);
+  }
+
+  /* Code blocks — always monospace */
+  code, kbd, samp, pre {
+    font-family: var(--font-mono);
+    font-feature-settings: 'zero' 1;
+    font-variant-numeric:  tabular-nums;
+  }
+
+}
+
+
+/* =============================================================================
+   SECTION 6 — GRADIENT TEXT
+   Applied to hero numbers and .typo-hero variant.
+   Only works when text-fill-color is transparent, so it's a self-contained
+   utility rather than an inheritable value.
+   ============================================================================= */
+
+.gradient-text {
+  background:              linear-gradient(
+                             135deg,
+                             var(--text-primary, #F0F0F4) 0%,
+                             var(--text-accent,  #9B87FF) 100%
+                           );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip:         text;
+  /* Fallback for browsers without background-clip: text */
+  color:                   var(--text-primary, #F0F0F4);
+}
+
+/* Semantic variants wired to risk colors */
+.gradient-text-critical {
+  background:              linear-gradient(135deg, #FF6B6B 0%, #FF4444 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip:         text;
+  color:                   var(--critical, #FF4444);
+}
+
+.gradient-text-stable {
+  background:              linear-gradient(135deg, #4ADE80 0%, #22C55E 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip:         text;
+  color:                   var(--stable, #22C55E);
+}
+
+
+/* =============================================================================
+   SECTION 7 — PROSE HELPER
+   Longform reading regions (patient summaries, clinical notes).
+   Activates body-copy sizing and relaxed leading automatically within
+   the container so individual children don't need per-element classes.
+   ============================================================================= */
+
+.prose-cliniq {
+  font-family:    var(--font-inter);
+  font-size:      var(--text-body-size);
+  font-weight:    var(--text-body-weight);
+  line-height:    var(--text-body-leading);
+  letter-spacing: var(--text-body-tracking);
+  color:          var(--text-secondary, #8B8B99);
+  font-feature-settings: 'cv01' 1, 'cv02' 1, 'ss01' 1;
+}
+
+.prose-cliniq p + p     { margin-top: 0.875em; }
+.prose-cliniq strong    { font-weight: 600; color: var(--text-primary, #F0F0F4); }
+.prose-cliniq em        { font-style: italic; }
+.prose-cliniq code      { font-family: var(--font-mono); font-size: 0.9em; }

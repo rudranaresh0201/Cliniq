@@ -33,18 +33,30 @@ export interface IndiaContextData {
 }
 
 export interface AnalyzeResponse {
-  triage: string;
+  // v1 fields
+  triage?: string;
   triage_message?: string;
-  conditions: Condition[];
-  immediate_actions: string[];
-  recommended_tests: string[];
-  drug_safety: DrugSafety;
-  red_flags: string[];
-  follow_up_questions: string[];
-  patient_summary: string;
-  disclaimer: string;
-  cached: boolean;
+  conditions?: Condition[];
+  immediate_actions?: string[];
+  recommended_tests?: string[];
+  drug_safety?: DrugSafety;
+  red_flags?: string[];
+  follow_up_questions?: string[];
+  patient_summary?: string;
+  disclaimer?: string;
+  cached?: boolean;
   error?: string;
   india_context?: IndiaContextData;
   dangerous_differentials?: string[];
+  // v2 pipeline fields
+  risk_tier?: string;
+  risk_flags?: string[];
+  synthesis?: string;
+  monitoring_plan_created?: boolean;
+  monitoring_plan_id?: string | null;
+  tasks_created?: number;
+  plan_reasoning?: string;
+  tools_executed?: string[];
+  case_id?: string;
+  patient_id?: string;
 }

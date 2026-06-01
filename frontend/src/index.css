@@ -1,3 +1,6 @@
+@import './styles/colors.css';
+@import './styles/typography.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,11 +11,10 @@
 
 body {
   margin: 0;
-  font-family: 'Sora', 'Inter', sans-serif;
-  background-color: #080B14;
-  color: #f1f5f9;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Font family and smoothing are set by the typography plugin's addBase.  */
+  /* Only layout + color properties live here.                               */
+  background-color: var(--bg-base, #0A0A0D);
+  color:            var(--text-primary, #F0F0F4);
 }
 
 #root {
@@ -101,6 +103,43 @@ body {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
+/* ── CSS-native animations (offloaded from Framer Motion for GPU perf) ────── */
+
+/* Critical risk pill pulse: opacity 1 → 0.4 → 1 (reuses pulse-dot keyframe) */
+/* Referenced by CSS_ANIM.glowPulse in src/lib/motion.ts                       */
+.animate-risk-pulse {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Skeleton loading shimmer: translateX-based overlay                           */
+/* Referenced by CSS_ANIM.shimmer in src/lib/motion.ts                         */
+@keyframes skeleton-shimmer {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
+
+.skeleton {
+  overflow:         hidden;
+  position:         relative;
+  background-color: var(--bg-elevated, #14141A);
+  border-radius:    var(--radius-sm, 6px);
+}
+
+.skeleton::after {
+  content:    '';
+  position:   absolute;
+  inset:      0;
+  transform:  translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+  animation: skeleton-shimmer 1.8s linear infinite;
+}
+
+/* ── Stagger helpers ─────────────────────────────────────────────────────── */
 .stagger-1 { animation-delay: 0.1s; opacity: 0; }
 .stagger-2 { animation-delay: 0.2s; opacity: 0; }
 .stagger-3 { animation-delay: 0.3s; opacity: 0; }

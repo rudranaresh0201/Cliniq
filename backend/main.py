@@ -2,15 +2,29 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# ---------------------------------------------------------------------------
+# Load .env before any import that triggers module-level os.environ.get().
+# workers.watch_worker → db.supabase_client reads env vars at import time,
+# and config.py (which calls load_dotenv) is imported after watch_worker.
+# Calling load_dotenv() here guarantees the env is populated first.
+# ---------------------------------------------------------------------------
+from dotenv import load_dotenv as _load_dotenv
+_load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
+import os
+print("GROQ KEY:", os.getenv("GROQ_API_KEY", "")[:15])
+
 import asyncio
 import json
 import time
+from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from fastapi import FastAPI, HTTPException, Query, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
+
+from workers.watch_worker import on_startup, on_shutdown
 
 from config import MAX_RETRY_LOOPS
 from backend.safety.redflags import check_emergency
@@ -33,10 +47,19 @@ from backend.india.outbreak_monitor import get_outbreak_alerts
 # App setup
 # ---------------------------------------------------------------------------
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await on_startup()
+    yield
+    await on_shutdown()
+
+
 app = FastAPI(
     title="ClinIQ Medical RAG API",
     description="Agentic AI for medical query analysis powered by Groq + PubMed + OpenFDA",
-    version="1.0.0",
+    version="2.0.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -49,6 +72,13 @@ app.add_middleware(
 
 app.include_router(patient_router)
 app.include_router(reports_router)
+
+from api.v2.pipeline_router import router as v2_router  # noqa: E402
+from api.v2.lab_ingestion import router as lab_ingestion_router  # noqa: E402
+from routers.intelligence import router as intelligence_router  # noqa: E402
+app.include_router(v2_router)
+app.include_router(lab_ingestion_router)
+app.include_router(intelligence_router, prefix="/api")
 
 
 # ---------------------------------------------------------------------------

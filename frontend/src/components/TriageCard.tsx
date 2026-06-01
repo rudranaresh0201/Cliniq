@@ -53,6 +53,7 @@ const triageConfig: Record<string, {
   pulse: boolean;
   Icon: () => React.ReactElement;
 }> = {
+  // v1 triage levels
   EMERGENCY: {
     borderColor: 'rgba(239,68,68,0.4)',
     glowColor: 'rgba(239,68,68,0.2)',
@@ -92,6 +93,47 @@ const triageConfig: Record<string, {
     sub: 'General health information',
     pulse: false,
     Icon: InfoIcon,
+  },
+  // v2 risk_tier levels
+  CRITICAL: {
+    borderColor: 'rgba(239,68,68,0.4)',
+    glowColor: 'rgba(239,68,68,0.2)',
+    iconBg: 'rgba(239,68,68,0.25)',
+    accentGradient: 'linear-gradient(135deg, #ef4444, #b91c1c)',
+    label: 'Critical',
+    sub: 'Seek immediate emergency care',
+    pulse: true,
+    Icon: EmergencyIcon,
+  },
+  HIGH: {
+    borderColor: 'rgba(255,149,0,0.4)',
+    glowColor: 'rgba(255,149,0,0.15)',
+    iconBg: 'rgba(255,149,0,0.2)',
+    accentGradient: 'linear-gradient(135deg, #FF9500, #FF6B00)',
+    label: 'High Risk',
+    sub: 'See a doctor today',
+    pulse: false,
+    Icon: UrgentIcon,
+  },
+  MODERATE: {
+    borderColor: 'rgba(234,179,8,0.4)',
+    glowColor: 'rgba(234,179,8,0.12)',
+    iconBg: 'rgba(234,179,8,0.18)',
+    accentGradient: 'linear-gradient(135deg, #EAB308, #CA8A04)',
+    label: 'Moderate',
+    sub: 'Schedule an appointment soon',
+    pulse: false,
+    Icon: UrgentIcon,
+  },
+  LOW: {
+    borderColor: 'rgba(6,214,160,0.4)',
+    glowColor: 'rgba(6,214,160,0.12)',
+    iconBg: 'rgba(6,214,160,0.18)',
+    accentGradient: 'linear-gradient(135deg, #06D6A0, #059669)',
+    label: 'Low Risk',
+    sub: 'Monitor your symptoms',
+    pulse: false,
+    Icon: RoutineIcon,
   },
 };
 

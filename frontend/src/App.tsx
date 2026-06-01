@@ -14,16 +14,24 @@ import IndiaContext from './components/IndiaContext';
 import DangerousDifferentials from './components/DangerousDifferentials';
 import Dashboard from './pages/Dashboard';
 import Reports from './pages/Reports';
+import PatientHome from './app/(patient)/home/page';
+import TimelinePage from './app/(patient)/timeline/page';
+import DeepDivePage from './app/(patient)/deepdive/page';
+import ConsolePage from './app/console/page';
 import { useAnalyze } from './hooks/useAnalyze';
 import { useAnalyzeStream } from './hooks/useAnalyzeStream';
 import type { AnalyzeResponse } from './types';
 
-type Tab = 'analyze' | 'dashboard' | 'reports';
+type Tab = 'analyze' | 'dashboard' | 'reports' | 'patient' | 'timeline' | 'deepdive' | 'console';
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: 'analyze',   label: 'Analyze'     },
-  { id: 'dashboard', label: 'Dashboard'   },
-  { id: 'reports',   label: 'Lab Reports' },
+  { id: 'patient',   label: '⬡ Patient OS' },
+  { id: 'timeline',  label: '▸ Timeline'   },
+  { id: 'deepdive',  label: '◈ DeepDive'   },
+  { id: 'console',   label: '⌥ Console'    },
+  { id: 'analyze',   label: 'Analyze'      },
+  { id: 'dashboard', label: 'Dashboard'    },
+  { id: 'reports',   label: 'Lab Reports'  },
 ];
 
 const STATS = [
@@ -425,7 +433,7 @@ export default function App() {
                   </button>
                   <button
                     onClick={() => {
-                      const text = `ClinIQ Analysis:\nTriage: ${result.triage}\nTop condition: ${result.conditions[0]?.name} (${result.conditions[0]?.confidence}%)\n\nGet your analysis: https://cliniq-opal.vercel.app`;
+                      const text = `ClinIQ Analysis:\nTriage: ${result.risk_tier || result.triage}\nTop condition: ${result.conditions?.[0]?.name} (${result.conditions?.[0]?.confidence}%)\n\nGet your analysis: https://cliniq-opal.vercel.app`;
                       navigator.clipboard.writeText(text);
                       alert('Copied to clipboard!');
                     }}
@@ -461,9 +469,9 @@ export default function App() {
 
                 <div className="animate-fade-in-up stagger-1">
                   <TriageCard
-                    triage={result.triage}
+                    triage={result.risk_tier || result.triage || 'low'}
                     message={result.triage_message}
-                    cached={result.cached}
+                    cached={result.cached ?? false}
                   />
                 </div>
 
@@ -479,7 +487,7 @@ export default function App() {
                 )}
 
                 <div className="animate-fade-in-up stagger-2">
-                  <PatientSummary summary={result.patient_summary} />
+                  <PatientSummary summary={result.synthesis || result.patient_summary || ''} />
                 </div>
 
                 {result.conditions && result.conditions.length > 0 && (
@@ -503,7 +511,7 @@ export default function App() {
                 </div>
 
                 <div className="animate-fade-in-up stagger-4">
-                  <RedFlags redFlags={result.red_flags || []} />
+                  <RedFlags redFlags={result.risk_flags || result.red_flags || []} />
                 </div>
 
                 {result.dangerous_differentials && result.dangerous_differentials.length > 0 && (
@@ -513,7 +521,7 @@ export default function App() {
                 )}
 
                 <div className="animate-fade-in-up stagger-5">
-                  <DrugSafety drugSafety={result.drug_safety} />
+                  {result.drug_safety && <DrugSafety drugSafety={result.drug_safety} />}
                 </div>
 
                 {result.follow_up_questions && result.follow_up_questions.length > 0 && (
@@ -541,8 +549,12 @@ export default function App() {
           </div>
         )}
 
+        {activeTab === 'patient'   && <PatientHome onNavigate={(t) => setActiveTab(t as Tab)} />}
+        {activeTab === 'timeline'  && <TimelinePage />}
+        {activeTab === 'deepdive'  && <DeepDivePage />}
+        {activeTab === 'console'   && <ConsolePage />}
         {activeTab === 'dashboard' && <Dashboard />}
-        {activeTab === 'reports' && <Reports />}
+        {activeTab === 'reports'   && <Reports />}
       </main>
 
       <footer className="py-8 relative z-10" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', background: '#080B14' }}>
