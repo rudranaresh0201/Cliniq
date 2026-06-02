@@ -23,6 +23,7 @@ from db.models import (
     Case,
     Checkpoint,
     CreateCaseRequest,
+    CreatePatientRequest,
     Escalation,
     MonitoringPlan,
     Patient,
@@ -33,6 +34,7 @@ from db.supabase_client import (
     create_case,
     create_escalation,
     create_monitoring_plan,
+    create_patient,
     create_task,
     get_case,
     get_patient,
@@ -97,7 +99,7 @@ def _render_synthesizer_prompt(
 class PipelineRequest(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    patient_id: UUID
+    patient_id: UUID | None = None
     case_id: UUID | None = None
     user_input: str
     input_type: Literal["text", "voice_transcript", "lab_report", "image_report"]
@@ -110,8 +112,8 @@ class PipelineResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     success: bool
-    case_id: UUID
-    patient_id: UUID
+    case_id: UUID | None = None
+    patient_id: UUID | None = None
     synthesis: str
     plan_reasoning: str
     tools_executed: list[str]
@@ -199,9 +201,17 @@ class ClinIQPipeline:
         t = time.perf_counter()
         logger.info("Stage INTAKE starting | patient_id=%s", request.patient_id)
 
-        patient = await get_patient(request.patient_id)
-        if patient is None:
-            raise ValueError(f"Patient {request.patient_id} not found")
+        if request.patient_id is not None:
+            patient = await get_patient(request.patient_id)
+            if patient is None:
+                raise ValueError(f"Patient {request.patient_id} not found")
+        else:
+            # First-time user: no patient_id supplied — auto-create an anonymous record.
+            patient = await create_patient(CreatePatientRequest(
+                name="ClinIQ Patient",
+                phone=f"anon_{int(time.time() * 1000)}",
+            ))
+            logger.info("Auto-created patient %s", patient.patient_id)
 
         if request.case_id is not None:
             case = await get_case(request.case_id)
@@ -210,7 +220,7 @@ class ClinIQPipeline:
         else:
             case = await create_case(
                 CreateCaseRequest(
-                    patient_id=request.patient_id,
+                    patient_id=patient.patient_id,  # type: ignore[arg-type]
                     chief_complaint=request.user_input[:255],
                     clinic_id=request.clinic_id,
                 )
@@ -474,8 +484,8 @@ class ClinIQPipeline:
         risk_tier, risk_flags = _extract_risk(execution)
         return PipelineResponse(
             success=True,
-            case_id=case.case_id,  # type: ignore[arg-type]
-            patient_id=request.patient_id,
+            case_id=case.case_id,      # type: ignore[arg-type]
+            patient_id=case.patient_id,  # type: ignore[arg-type]
             synthesis=synthesis,
             plan_reasoning=execution.plan.reasoning,
             tools_executed=[r.tool_name for r in execution.results],
