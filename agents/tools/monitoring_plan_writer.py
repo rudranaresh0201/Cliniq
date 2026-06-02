@@ -868,6 +868,16 @@ HIGH_RISK_IMMEDIATE_CHECKPOINT = CheckpointTemplate(
 # ===========================================================================
 
 
+def _normalize_differentials(differentials):
+    result = []
+    for item in differentials:
+        if isinstance(item, str):
+            result.append({"diagnosis": item, "confidence": None})
+        elif isinstance(item, dict):
+            result.append(item)
+    return result
+
+
 def match_template(
     differentials: list[dict], diagnosis_context: str
 ) -> MonitoringTemplate:
@@ -948,6 +958,7 @@ async def write_monitoring_plan(inputs: dict) -> dict:
         case_id_str, risk_tier, patient_language, len(differentials),
     )
 
+    differentials = _normalize_differentials(differentials)
     base_date = datetime.now(tz=timezone.utc)
     template = match_template(differentials, diagnosis_context)
     logger.info("Template selected: %s", template.name)

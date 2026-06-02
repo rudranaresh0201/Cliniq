@@ -204,6 +204,7 @@ async def rerank_for_india(inputs: dict) -> dict:
     # Step 1 — season
     season: str = inputs.get("season") or _detect_season()
 
+    location = location or ""
     location_lower = location.lower()
     location_context = _describe_location(location_lower)
 
