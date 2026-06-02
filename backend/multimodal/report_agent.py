@@ -171,25 +171,25 @@ async def interpret_report(parsed: dict, patient_context: dict | None = None) ->
     context_text = _format_patient_context(patient_context or {})
     report_type = parsed.get("report_type", "general_medical")
 
-    if parsed.get("is_imaging_report"):
-        label = _IMAGING_TYPE_LABELS.get(report_type, "Imaging")
-        prompt = _IMAGING_PROMPT.format(
-            report_type_label=label,
-            raw_text=parsed.get("raw_text", "")[:2000],
-            patient_context=context_text,
-        )
-    elif parsed.get("is_prescription"):
-        prompt = _PRESCRIPTION_PROMPT.format(
-            raw_text=parsed.get("raw_text", "")[:2000],
-            patient_context=context_text,
-        )
-    else:
-        prompt = _LAB_PROMPT.format(
-            abnormal_values=_format_abnormal(parsed.get("values", {})),
-            patient_context=context_text,
-        )
-
     try:
+        if parsed.get("is_imaging_report"):
+            label = _IMAGING_TYPE_LABELS.get(report_type, "Imaging")
+            prompt = _IMAGING_PROMPT.format(
+                report_type_label=label,
+                raw_text=parsed.get("raw_text", "")[:2000],
+                patient_context=context_text,
+            )
+        elif parsed.get("is_prescription"):
+            prompt = _PRESCRIPTION_PROMPT.format(
+                raw_text=parsed.get("raw_text", "")[:2000],
+                patient_context=context_text,
+            )
+        else:
+            prompt = _LAB_PROMPT.format(
+                abnormal_values=_format_abnormal(parsed.get("values", {})),
+                patient_context=context_text,
+            )
+
         raw, provider = await complete(prompt, temperature=0.2, max_tokens=1200)
         logger.info(json.dumps({"stage": "report_agent.provider", "provider": provider}))
         result = parse_json(raw)
