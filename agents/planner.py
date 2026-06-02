@@ -12,14 +12,11 @@ import os
 import time
 from dataclasses import dataclass, field
 
-from groq import AsyncGroq
-
 from agents.tool_registry import REGISTRY
+from backend.llm.router import llm_chat
 from db.models import Case, Patient
 
 logger = logging.getLogger("cliniq.planner")
-
-_GROQ_MODEL = "llama-3.3-70b-versatile"
 
 # ---------------------------------------------------------------------------
 # System prompt
@@ -156,10 +153,6 @@ class ClinIQPlanner:
     """Orchestrates LLM-driven tool planning and sequential execution."""
 
     def __init__(self) -> None:
-        api_key = os.environ.get("GROQ_API_KEY", "")
-        if not api_key:
-            raise EnvironmentError("GROQ_API_KEY environment variable is not set")
-        self._groq = AsyncGroq(api_key=api_key)
         self._tool_list = REGISTRY.list_tools()
         logger.info("ClinIQPlanner initialised with %d tools", len(self._tool_list))
 
@@ -196,8 +189,7 @@ class ClinIQPlanner:
             return _make_fallback_plan(user_input)
 
     async def _call_groq(self, system_prompt: str, user_input: str) -> str:
-        response = await self._groq.chat.completions.create(
-            model=_GROQ_MODEL,
+        return await llm_chat(
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_input},
@@ -205,7 +197,6 @@ class ClinIQPlanner:
             temperature=0.1,
             max_tokens=1024,
         )
-        return response.choices[0].message.content or ""
 
     def _parse_plan(self, raw: str) -> ToolPlan:
         """Parse the LLM JSON response into a ToolPlan, raising on bad JSON."""

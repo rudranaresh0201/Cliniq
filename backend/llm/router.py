@@ -7,6 +7,7 @@ import json
 import re
 import logging
 import requests
+import httpx
 from groq import AsyncGroq, RateLimitError as GroqRateLimit
 from config import GROQ_API_KEY, GROQ_MODEL
 
@@ -15,6 +16,8 @@ logger = logging.getLogger("cliniq")
 # Read optional provider keys (graceful if absent)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3.3-70b-instruct")
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 _groq_client: AsyncGroq | None = None
 
@@ -114,6 +117,54 @@ async def complete(
             last_error = e
 
     raise RuntimeError(f"All LLM providers failed. Last error: {last_error}")
+
+
+async def llm_chat(
+    messages: list,
+    temperature: float = 0.3,
+    max_tokens: int = 2048,
+) -> str:
+    """
+    Send a messages-list completion request.
+    Tries Groq first; falls back to OpenRouter on any failure.
+    Returns the response content string. Raises if both fail.
+    """
+    try:
+        response = await _groq().chat.completions.create(
+            model=GROQ_MODEL,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        return response.choices[0].message.content or ""
+    except Exception as e:
+        logger.warning("Groq failed (%s): %s", type(e).__name__, e)
+
+    if not OPENROUTER_API_KEY:
+        raise RuntimeError("Groq failed and OPENROUTER_API_KEY not set")
+
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:
+            resp = await client.post(
+                OPENROUTER_URL,
+                headers={
+                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://cliniq.app",
+                    "X-Title": "ClinIQ",
+                },
+                json={
+                    "model": OPENROUTER_MODEL,
+                    "messages": messages,
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
+                },
+            )
+            resp.raise_for_status()
+            return resp.json()["choices"][0]["message"]["content"] or ""
+    except Exception as e:
+        logger.error("OpenRouter failed (%s): %s", type(e).__name__, e)
+        raise
 
 
 def parse_json(text: str) -> dict:

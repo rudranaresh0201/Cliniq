@@ -12,34 +12,15 @@ import json
 import logging
 import os
 
-from groq import AsyncGroq
-
 from agents.tool_registry import REGISTRY, Tool
 from agents.tools.deepdive.cbc_interpreter import interpret_cbc
 from agents.tools.deepdive.lft_interpreter import interpret_lft
 from agents.tools.deepdive.rft_interpreter import interpret_rft
 from db.timeline import write_timeline_event as _tl_write
 
+from backend.llm.router import llm_chat
+
 logger = logging.getLogger("cliniq.tools.deepdive")
-
-_GROQ_MODEL = "llama-3.3-70b-versatile"
-
-# ---------------------------------------------------------------------------
-# Lazy Groq client for generic interpreter
-# ---------------------------------------------------------------------------
-
-_groq_client: AsyncGroq | None = None
-
-
-def _get_groq() -> AsyncGroq:
-    global _groq_client
-    if _groq_client is None:
-        api_key = os.environ.get("GROQ_API_KEY", "")
-        if not api_key:
-            raise EnvironmentError("GROQ_API_KEY environment variable is not set")
-        _groq_client = AsyncGroq(api_key=api_key)
-    return _groq_client
-
 
 # ---------------------------------------------------------------------------
 # Generic interpreter — fallback for LFT, RFT, Xray, prescription, other
@@ -96,16 +77,14 @@ async def generic_interpret(inputs: dict) -> dict:
     )
 
     try:
-        response = await _get_groq().chat.completions.create(
-            model=_GROQ_MODEL,
+        raw = (await llm_chat(
             messages=[
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": f"Interpret this {report_type} report now."},
             ],
             temperature=0.1,
             max_tokens=1024,
-        )
-        raw = (response.choices[0].message.content or "").strip()
+        )).strip()
         if raw.startswith("```"):
             raw = raw.split("```")[1].lstrip("json").strip()
         data = json.loads(raw)

@@ -10,13 +10,11 @@ import json
 import logging
 import os
 
-from groq import AsyncGroq
-
 from agents.tool_registry import REGISTRY, Tool
+from backend.llm.router import llm_chat
+from backend.llm.parsing import parse_llm_json
 
 logger = logging.getLogger("cliniq.tools.clinical_reasoner")
-
-_GROQ_MODEL = "llama-3.3-70b-versatile"
 
 _RISK_ORDER = ["low", "moderate", "high", "critical"]
 
@@ -88,23 +86,6 @@ _REQUIRED_FIELDS = {
     "red_flag_actions",
     "reasoning_summary",
 }
-
-# ---------------------------------------------------------------------------
-# Groq client — lazily initialised
-# ---------------------------------------------------------------------------
-
-_groq_client: AsyncGroq | None = None
-
-
-def _get_groq() -> AsyncGroq:
-    global _groq_client
-    if _groq_client is None:
-        api_key = os.environ.get("GROQ_API_KEY", "")
-        if not api_key:
-            raise EnvironmentError("GROQ_API_KEY environment variable is not set")
-        _groq_client = AsyncGroq(api_key=api_key)
-    return _groq_client
-
 
 # ---------------------------------------------------------------------------
 # Fallback response
@@ -200,8 +181,7 @@ async def _call_groq(system_prompt: str, inputs: dict) -> str:
         f"Please analyse this patient and return the JSON differential diagnosis."
         f" Symptoms count: {len(inputs.get('symptoms', []))}."
     )
-    response = await _get_groq().chat.completions.create(
-        model=_GROQ_MODEL,
+    return await llm_chat(
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_msg},
@@ -209,16 +189,15 @@ async def _call_groq(system_prompt: str, inputs: dict) -> str:
         temperature=0.1,
         max_tokens=2048,
     )
-    return response.choices[0].message.content or ""
 
 
 def _parse_and_validate(raw: str) -> dict:
-    cleaned = raw.strip()
-    if cleaned.startswith("```"):
-        parts = cleaned.split("```")
-        cleaned = parts[1].lstrip("json").strip()
-
-    data: dict = json.loads(cleaned)
+    try:
+        data: dict = parse_llm_json(raw)
+    except Exception as e:
+        logger.error("JSON parse failed: %s", e)
+        logger.error("Raw text was: %s", raw[:500])
+        raise
 
     missing = _REQUIRED_FIELDS - data.keys()
     if missing:

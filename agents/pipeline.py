@@ -15,7 +15,6 @@ import time
 from typing import Literal
 from uuid import UUID
 
-from groq import AsyncGroq
 from pydantic import BaseModel, ConfigDict
 
 from agents.planner import ClinIQPlanner, PlanExecutionResult, ToolPlan
@@ -24,6 +23,7 @@ from db.models import (
     Case,
     Checkpoint,
     CreateCaseRequest,
+    Escalation,
     MonitoringPlan,
     Patient,
     Task,
@@ -31,6 +31,7 @@ from db.models import (
 from db.supabase_client import (
     append_agent_note,
     create_case,
+    create_escalation,
     create_monitoring_plan,
     create_task,
     get_case,
@@ -39,10 +40,9 @@ from db.supabase_client import (
     write_timeline_event,
 )
 from db.models import UpdateCaseRiskRequest
+from backend.llm.router import llm_chat
 
 logger = logging.getLogger("cliniq.pipeline")
-
-_GROQ_MODEL = "llama-3.3-70b-versatile"
 
 # ---------------------------------------------------------------------------
 # Synthesizer system prompt
@@ -147,10 +147,6 @@ class ClinIQPipeline:
     """Runs the full ClinIQ 2.0 agentic pipeline end to end."""
 
     def __init__(self) -> None:
-        api_key = os.environ.get("GROQ_API_KEY", "")
-        if not api_key:
-            raise EnvironmentError("GROQ_API_KEY environment variable is not set")
-        self._groq = AsyncGroq(api_key=api_key)
         self._planner = ClinIQPlanner()
         logger.info("ClinIQPipeline initialised")
 
@@ -296,8 +292,7 @@ class ClinIQPipeline:
             patient=patient,
             case=case,
         )
-        response = await self._groq.chat.completions.create(
-            model=_GROQ_MODEL,
+        synthesis = await llm_chat(
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": request.user_input},
@@ -305,7 +300,6 @@ class ClinIQPipeline:
             temperature=0.3,
             max_tokens=2048,
         )
-        synthesis = response.choices[0].message.content or ""
         logger.info("Stage SYNTHESIZE complete | chars=%d | ms=%d", len(synthesis), _ms(t))
         return synthesis
 
@@ -327,6 +321,9 @@ class ClinIQPipeline:
         risk_tier, risk_flags = _extract_risk(execution)
         tools_executed = [r.tool_name for r in execution.results]
 
+        if risk_tier in ("high", "critical"):
+            await self._escalate_if_critical(case, risk_tier, risk_flags)
+
         await self._persist_risk(case, risk_tier, risk_flags)
         pr.timeline_event_id = await self._persist_timeline(
             case, request, execution, synthesis, risk_tier
@@ -341,6 +338,26 @@ class ClinIQPipeline:
 
         logger.info("Stage PERSIST complete | ms=%d", _ms(t))
         return pr
+
+    async def _escalate_if_critical(
+        self, case: Case, risk_tier: str, risk_flags: list[str]
+    ) -> None:
+        severity = "emergency" if risk_tier == "critical" else "alert"
+        try:
+            escalation = Escalation(
+                case_id=case.case_id,  # type: ignore[arg-type]
+                patient_id=case.patient_id,
+                severity=severity,
+                trigger_reason=f"Pipeline analysis flagged risk_tier={risk_tier}",
+                trigger_evidence={"risk_tier": risk_tier, "risk_flags": risk_flags},
+            )
+            await create_escalation(escalation)
+            logger.info(
+                "PERSIST: escalation created | case=%s | severity=%s",
+                case.case_id, severity,
+            )
+        except Exception:
+            logger.exception("PERSIST: create_escalation failed for case_id=%s", case.case_id)
 
     async def _persist_risk(self, case: Case, risk_tier: str, risk_flags: list[str]) -> None:
         try:

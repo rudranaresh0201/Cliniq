@@ -25,8 +25,7 @@ from uuid import UUID
 import httpx
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-from groq import AsyncGroq
-
+from backend.llm.router import llm_chat
 from db.models import Case, Checkpoint, MonitoringPlan, Task, WhatsappMessage
 from db.timeline import write_timeline_event as _tl_write
 from db.supabase_client import (
@@ -57,8 +56,6 @@ WHATSAPP_MODE: str = os.getenv("WHATSAPP_MODE", "log")
 DOCTOR_PHONE: str = os.getenv("DOCTOR_PHONE", "")
 DOCTOR_TELEGRAM_CHAT_ID: str = os.getenv("DOCTOR_TELEGRAM_CHAT_ID", "")
 ADMIN_SECRET: str = os.getenv("ADMIN_SECRET", "")
-
-_GROQ_MODEL = "llama-3.3-70b-versatile"
 
 # ---------------------------------------------------------------------------
 # WatchRunSummary — returned by run_daily_watch()
@@ -96,23 +93,6 @@ class _InboundResult:
 # ---------------------------------------------------------------------------
 
 scheduler = AsyncIOScheduler(timezone=WORKER_TIMEZONE)
-
-# ---------------------------------------------------------------------------
-# Groq client — lazily initialised
-# ---------------------------------------------------------------------------
-
-_groq_client: AsyncGroq | None = None
-
-
-def _get_groq() -> AsyncGroq:
-    global _groq_client
-    if _groq_client is None:
-        api_key = os.environ.get("GROQ_API_KEY", "")
-        if not api_key:
-            raise EnvironmentError("GROQ_API_KEY environment variable is not set")
-        _groq_client = AsyncGroq(api_key=api_key)
-    return _groq_client
-
 
 # ===========================================================================
 # MAIN JOB — run_daily_watch
@@ -387,16 +367,14 @@ async def compose_checkpoint_message(
     )
 
     try:
-        response = await _get_groq().chat.completions.create(
-            model=_GROQ_MODEL,
+        return (await llm_chat(
             messages=[
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": "Compose the WhatsApp message now."},
             ],
             temperature=0.4,
             max_tokens=300,
-        )
-        return (response.choices[0].message.content or "").strip()
+        )).strip()
     except Exception:
         logger.exception("compose_checkpoint_message: Groq failed — using fallback")
 

@@ -20,9 +20,8 @@ import logging
 import os
 from uuid import UUID
 
-from groq import AsyncGroq
-
 from agents.tool_registry import REGISTRY, Tool
+from backend.llm.router import llm_chat
 from db.models import Escalation
 from db.timeline import write_timeline_event as _tl_write
 from db.supabase_client import (
@@ -34,8 +33,6 @@ from db.supabase_client import (
 )
 
 logger = logging.getLogger("cliniq.tools.escalation_evaluator")
-
-_GROQ_MODEL = "llama-3.3-70b-versatile"
 
 # ===========================================================================
 # Keyword signal lists — module-level constants, bilingual (EN + Hindi)
@@ -155,22 +152,6 @@ def _render_groq_prompt(
 
 
 # ===========================================================================
-# Groq client — lazily initialised
-# ===========================================================================
-
-_groq_client: AsyncGroq | None = None
-
-
-def _get_groq() -> AsyncGroq:
-    global _groq_client
-    if _groq_client is None:
-        api_key = os.environ.get("GROQ_API_KEY", "")
-        if not api_key:
-            raise EnvironmentError("GROQ_API_KEY environment variable is not set")
-        _groq_client = AsyncGroq(api_key=api_key)
-    return _groq_client
-
-
 # ===========================================================================
 # Step 1 — keyword screen
 # ===========================================================================
@@ -238,16 +219,14 @@ def screen_criteria(response_text: str, checkpoint: dict) -> dict:
 async def _call_groq(prompt: str) -> dict | None:
     """Call Groq and return parsed JSON, or None on any failure."""
     try:
-        response = await _get_groq().chat.completions.create(
-            model=_GROQ_MODEL,
+        raw = (await llm_chat(
             messages=[
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": "Evaluate the patient response now."},
             ],
             temperature=0.1,
             max_tokens=512,
-        )
-        raw = (response.choices[0].message.content or "").strip()
+        )).strip()
         if raw.startswith("```"):
             raw = raw.split("```")[1].lstrip("json").strip()
         return json.loads(raw)

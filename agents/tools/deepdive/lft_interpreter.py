@@ -18,11 +18,9 @@ import os
 import re
 from typing import Any
 
-from groq import AsyncGroq
+from backend.llm.router import llm_chat
 
 logger = logging.getLogger("cliniq.tools.deepdive.lft")
-
-_GROQ_MODEL = "llama-3.3-70b-versatile"
 
 _ATT_WARNING = (
     "⚠️ Patient is on ATT drugs (rifampicin/isoniazid/pyrazinamide) — "
@@ -260,19 +258,6 @@ def _render_groq_prompt(
 # Groq client — lazily initialised
 # ===========================================================================
 
-_groq_client: AsyncGroq | None = None
-
-
-def _get_groq() -> AsyncGroq:
-    global _groq_client
-    if _groq_client is None:
-        api_key = os.environ.get("GROQ_API_KEY", "")
-        if not api_key:
-            raise EnvironmentError("GROQ_API_KEY environment variable is not set")
-        _groq_client = AsyncGroq(api_key=api_key)
-    return _groq_client
-
-
 # ===========================================================================
 # Helpers
 # ===========================================================================
@@ -494,16 +479,14 @@ async def _groq_synthesize(
 ) -> dict | None:
     prompt = _render_groq_prompt(age, sex, known_conditions, parsed, flags, patterns)
     try:
-        response = await _get_groq().chat.completions.create(
-            model=_GROQ_MODEL,
+        raw = (await llm_chat(
             messages=[
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": "Interpret this LFT report now."},
             ],
             temperature=0.1,
             max_tokens=1024,
-        )
-        raw = (response.choices[0].message.content or "").strip()
+        )).strip()
         if raw.startswith("```"):
             raw = raw.split("```")[1].lstrip("json").strip()
         return json.loads(raw)

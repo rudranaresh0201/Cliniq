@@ -21,11 +21,12 @@ import os
 import re
 from typing import Any
 
-from groq import AsyncGroq
+from backend.llm.router import llm_chat
+from backend.llm.parsing import parse_llm_json
 
 logger = logging.getLogger("cliniq.tools.deepdive.rft")
 
-_GROQ_MODEL = "llama-3.3-70b-versatile"
+_SEVERITY_RANK: dict[str, int] = {"low": 0, "moderate": 1, "high": 2, "critical": 3}
 
 # ---------------------------------------------------------------------------
 # Warning strings injected onto relevant flags
@@ -128,7 +129,7 @@ def ckd_stage(egfr: float) -> str:
 # ---------------------------------------------------------------------------
 
 CRITICAL_RFT: dict[str, dict[str, float]] = {
-    "creatinine":  {"high": 10.0},
+    "creatinine":  {"high": 2.0},   # ≥2.0 mg/dL is clinically urgent
     "potassium":   {"low": 2.5,   "high": 6.5},
     "sodium":      {"low": 120.0, "high": 160.0},
     "bicarbonate": {"low": 10.0},
@@ -144,19 +145,23 @@ _K_WARN = 5.5   # K > 5.5 → severity = moderate regardless of deviation
 # ===========================================================================
 
 RFT_MARKER_PATTERNS: dict[str, re.Pattern] = {
-    # 1. Creatinine
+    # 1. Creatinine — handles "Serum Creatinine", "S. Creatinine",
+    #    "Creatinine (Serum)", "Creatinine Serum", "Creat"; separators : - =
     "creatinine": re.compile(
-        r"(?:serum\s+creatinine|s\.?\s*creatinine|creatinine(?:\s+serum)?|creat)\s*[:\-]?\s*([\d.]+)",
+        r"(?:serum\s+creatinine|s\.?\s*creatinine"
+        r"|creatinine\s*(?:\(\s*serum\s*\)|\(\s*s\s*\))?|creat)"
+        r"\s*[:\-=]?\s*([\d.]+)",
         re.IGNORECASE,
     ),
     # 2. Blood Urea (Indian convention — urea molecule, not nitrogen fraction)
     "urea": re.compile(
-        r"(?:blood\s+urea(?!\s+nitro)|urea\s*(?:blood|serum)?(?!\s+nitro))\s*[:\-]?\s*([\d.]+)",
+        r"(?:blood\s+urea(?!\s+nitro)|urea\s*(?:\(\s*blood\s*\)|\(\s*serum\s*\))?(?!\s*nitro))"
+        r"\s*[:\-=]?\s*([\d.]+)",
         re.IGNORECASE,
     ),
     # 3. BUN — used in some Indian private labs and US-format reports
     "bun": re.compile(
-        r"(?:blood\s+urea\s+nitrogen|b\.?u\.?n\.?)\s*[:\-]?\s*([\d.]+)",
+        r"(?:blood\s+urea\s+nitrogen|b\.?u\.?n\.?)\s*[:\-=]?\s*([\d.]+)",
         re.IGNORECASE,
     ),
     # 4. Uric acid
@@ -432,19 +437,6 @@ def _render_groq_prompt(
 # Groq client — lazily initialised
 # ===========================================================================
 
-_groq_client: AsyncGroq | None = None
-
-
-def _get_groq() -> AsyncGroq:
-    global _groq_client
-    if _groq_client is None:
-        api_key = os.environ.get("GROQ_API_KEY", "")
-        if not api_key:
-            raise EnvironmentError("GROQ_API_KEY environment variable is not set")
-        _groq_client = AsyncGroq(api_key=api_key)
-    return _groq_client
-
-
 # ===========================================================================
 # Context helpers
 # ===========================================================================
@@ -695,8 +687,7 @@ async def _groq_synthesize(
         diagnosis_hypotheses, parsed, flags, patterns, ckd_stage_str,
     )
     try:
-        response = await _get_groq().chat.completions.create(
-            model=_GROQ_MODEL,
+        raw = await llm_chat(
             messages=[
                 {"role": "system", "content": prompt},
                 {"role": "user",   "content": "Interpret this RFT report now."},
@@ -704,10 +695,7 @@ async def _groq_synthesize(
             temperature=0.1,
             max_tokens=1024,
         )
-        raw = (response.choices[0].message.content or "").strip()
-        if raw.startswith("```"):
-            raw = raw.split("```")[1].lstrip("json").strip()
-        return json.loads(raw)
+        return parse_llm_json(raw)
     except Exception:
         logger.exception("_groq_synthesize: Groq call or parse failed")
         return None
@@ -735,13 +723,30 @@ def _fallback_result(
         if patterns
         else (flags[0]["interpretation"] if flags else "No significant abnormalities detected")
     )
+
+    follow_up: list[dict] = []
+    creatinine_elevated = any(
+        f.get("marker") == "creatinine" and f.get("direction") == "high"
+        for f in flags
+    )
+    if creatinine_elevated:
+        follow_up.append({
+            "test": "Nephrology review",
+            "reason": (
+                "Nephrology review recommended. "
+                "Check eGFR, urine albumin-creatinine ratio, and renal ultrasound. "
+                "Avoid nephrotoxic medications."
+            ),
+            "priority": "immediate" if risk == "critical" else "48h",
+        })
+
     return {
         "clinical_summary":    f"RFT shows {len(flags)} abnormal finding(s). Pattern: {primary}.",
         "primary_finding":     primary,
         "risk_level":          risk,
         "risk_reason":         "Determined from abnormal flag severity",
         "immediate_actions":   [],
-        "follow_up_tests":     [],
+        "follow_up_tests":     follow_up,
         "india_context":       "Groq synthesis unavailable — rule-based assessment only",
         "patient_explanation": "Some kidney function test values are outside normal range. "
                                "Please consult your doctor for a full explanation.",
@@ -812,6 +817,15 @@ async def interpret_rft(inputs: dict) -> dict:
         parsed, flags, patterns, ckd_stage_str,
     )
     synthesis = groq_result if groq_result else _fallback_result(parsed, flags, patterns)
+
+    # Enforce rule-based floor: Groq must not downgrade a critical finding
+    rule_risk = _rule_based_risk(flags)
+    if _SEVERITY_RANK.get(rule_risk, 0) > _SEVERITY_RANK.get(synthesis.get("risk_level", "low"), 0):
+        logger.info(
+            "interpret_rft: risk floor applied | groq=%s → rule=%s",
+            synthesis.get("risk_level"), rule_risk,
+        )
+        synthesis["risk_level"] = rule_risk
 
     primary_pattern = patterns[0]["pattern"] if patterns else None
 

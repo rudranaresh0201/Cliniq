@@ -10,13 +10,11 @@ import json
 import logging
 import os
 
-from groq import AsyncGroq
-
 from agents.tool_registry import REGISTRY, Tool
+from backend.llm.router import llm_chat
+from backend.llm.parsing import parse_llm_json
 
 logger = logging.getLogger("cliniq.tools.symptom_extractor")
-
-_GROQ_MODEL = "llama-3.3-70b-versatile"
 
 # ---------------------------------------------------------------------------
 # System prompt — embedded exactly as specified
@@ -74,19 +72,6 @@ _REQUIRED_FIELDS = {
 # Groq client — initialised lazily so missing keys surface at call time,
 # not at import time (allows the module to load in test environments).
 # ---------------------------------------------------------------------------
-
-_groq_client: AsyncGroq | None = None
-
-
-def _get_groq() -> AsyncGroq:
-    global _groq_client
-    if _groq_client is None:
-        api_key = os.environ.get("GROQ_API_KEY", "")
-        if not api_key:
-            raise EnvironmentError("GROQ_API_KEY environment variable is not set")
-        _groq_client = AsyncGroq(api_key=api_key)
-    return _groq_client
-
 
 # ---------------------------------------------------------------------------
 # Fallback response
@@ -156,8 +141,7 @@ async def extract_symptoms(inputs: dict) -> dict:
 async def _call_groq(text: str, language: str) -> str:
     """Send the extraction request to Groq and return the raw content string."""
     user_message = f"Language hint: {language}\n\nPatient text:\n{text}"
-    response = await _get_groq().chat.completions.create(
-        model=_GROQ_MODEL,
+    return await llm_chat(
         messages=[
             {"role": "system", "content": _SYSTEM_PROMPT},
             {"role": "user", "content": user_message},
@@ -165,18 +149,15 @@ async def _call_groq(text: str, language: str) -> str:
         temperature=0.1,
         max_tokens=1024,
     )
-    return response.choices[0].message.content or ""
 
 
 def _parse_and_validate(raw: str) -> dict:
-    """Strip accidental markdown fences, parse JSON, assert required fields."""
-    cleaned = raw.strip()
-    if cleaned.startswith("```"):
-        parts = cleaned.split("```")
-        # parts[1] is the fenced block; strip a leading 'json' language tag
-        cleaned = parts[1].lstrip("json").strip()
-
-    data: dict = json.loads(cleaned)
+    try:
+        data: dict = parse_llm_json(raw)
+    except Exception as e:
+        logger.error("JSON parse failed: %s", e)
+        logger.error("Raw text was: %s", raw[:500])
+        raise
 
     missing = _REQUIRED_FIELDS - data.keys()
     if missing:

@@ -25,8 +25,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from uuid import UUID
 
-from groq import AsyncGroq
-
+from backend.llm.router import llm_chat
 from db.models import Escalation, LabReport
 from db.supabase_client import (
     TABLE_LAB_REPORTS,
@@ -37,8 +36,6 @@ from db.supabase_client import (
 )
 
 logger = logging.getLogger("cliniq.tools.deepdive.cross_report")
-
-_GROQ_MODEL = "llama-3.3-70b-versatile"
 
 # ===========================================================================
 # Data structures
@@ -593,17 +590,14 @@ async def _groq_narrative(
     )
 
     try:
-        client = _get_groq()
-        response = await client.chat.completions.create(
-            model=_GROQ_MODEL,
+        return (await llm_chat(
             messages=[
                 {"role": "system", "content": prompt},
                 {"role": "user",   "content": "Write the clinical narrative now."},
             ],
             temperature=0.2,
             max_tokens=400,
-        )
-        return (response.choices[0].message.content or "").strip()
+        )).strip()
     except Exception:
         logger.exception("_groq_narrative: Groq call failed — using rule-based fallback")
 
@@ -625,23 +619,6 @@ async def _groq_narrative(
         f"Most urgent: {highest.name} — {highest.reasoning}"
         f"{traj_note} Immediate clinical review recommended."
     )
-
-
-# ===========================================================================
-# Groq client — lazily initialised
-# ===========================================================================
-
-_groq_client: AsyncGroq | None = None
-
-
-def _get_groq() -> AsyncGroq:
-    global _groq_client
-    if _groq_client is None:
-        api_key = os.environ.get("GROQ_API_KEY", "")
-        if not api_key:
-            raise EnvironmentError("GROQ_API_KEY environment variable is not set")
-        _groq_client = AsyncGroq(api_key=api_key)
-    return _groq_client
 
 
 # ===========================================================================
