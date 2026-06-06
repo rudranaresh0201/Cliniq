@@ -13,7 +13,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?style=flat-square&logo=docker&logoColor=white)](https://docker.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
-[Live Demo](https://cliniq-frontend.vercel.app) · [API Docs](https://cliniq-backend.onrender.com/docs) · [Report Bug](https://github.com/rudranaresh0201/Cliniq/issues)
+[Live Demo](https://cliniq-opal.vercel.app) · [API Docs](https://cliniq-backend.onrender.com/docs) · [Report Bug](https://github.com/rudranaresh0201/Cliniq/issues)
 
 </div>
 
