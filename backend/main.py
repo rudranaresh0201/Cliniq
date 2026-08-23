@@ -1,3 +1,4 @@
+import hmac
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -433,7 +434,7 @@ async def run_evaluation(
     x_admin_key: str | None = Header(default=None),
 ):
     admin_key = os.environ.get("ADMIN_KEY", "")
-    if not admin_key or x_admin_key != admin_key:
+    if not admin_key or not x_admin_key or not hmac.compare_digest(x_admin_key, admin_key):
         raise HTTPException(status_code=403, detail="Invalid or missing X-Admin-Key header")
 
     from backend.evaluation.metrics import run_evaluation_suite
