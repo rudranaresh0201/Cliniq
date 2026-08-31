@@ -6,7 +6,9 @@ python-dotenv
 groq
 chromadb>=1.5.0
 apscheduler>=3.10.0
-sentence-transformers
+# sentence-transformers  # only needed for EMBEDDING_BACKEND=torch (PubMedBERT).
+# Left out of the default install because it pulls ~2 GB of torch, which does
+# not fit a free instance. pip install it locally if you want that backend.
 supabase
 PyMuPDF
 rank-bm25

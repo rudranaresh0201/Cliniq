@@ -18,7 +18,18 @@ MAX_RETRY_LOOPS = int(os.getenv("MAX_RETRY_LOOPS", 3))
 
 #MODELS
 GROQ_MODEL = "llama-3.3-70b-versatile"
-EMBEDDING_MODEL = "pritamdeka/PubMedBERT-mnli-snli-scinli-scitail-mednli-stsb"
+# "onnx" uses the MiniLM that ships inside chromadb: no torch, ~90 MB, which is
+# what lets this run on a 512 MB instance. "torch" restores PubMedBERT, which is
+# medically tuned and better, and needs roughly 2 GB.
+EMBEDDING_BACKEND = os.getenv("EMBEDDING_BACKEND", "onnx")
+
+_TORCH_MODEL = "pritamdeka/PubMedBERT-mnli-snli-scinli-scitail-mednli-stsb"
+_ONNX_MODEL = "onnx-minilm-l6-v2"
+
+# Recorded in the Chroma collection metadata. rag.reset_collection_if_model_changed()
+# compares it and wipes the vectors when it changes, which is exactly right here:
+# PubMedBERT vectors scored against MiniLM queries produce quietly wrong similarities.
+EMBEDDING_MODEL = _TORCH_MODEL if EMBEDDING_BACKEND == "torch" else _ONNX_MODEL
 
 #CHROMADB
 CHROMA_COLLECTION = "medical_knowledge"

@@ -1,0 +1,55 @@
+# Render blueprint for the ClinIQ backend.
+#
+# IMPORTANT: this only fits Render's free instance (512 MB RAM, 0.1 CPU) once
+# the embedding backend is switched off sentence-transformers. PubMedBERT via
+# sentence-transformers drags in torch, which is roughly 2 GB resident before
+# the model itself loads, so the free instance is killed on startup. That is
+# the most likely reason the previous deploy stopped responding.
+#
+# The swap is confined to backend/memory/rag.py, which is the only module that
+# imports chromadb or sentence_transformers. See DEPLOY notes.
+#
+# After the swap, drop `sentence-transformers` from requirements.txt.
+
+services:
+  - type: web
+    name: cliniq-backend
+    runtime: python
+    plan: free
+    buildCommand: >-
+      pip install -r requirements.txt &&
+      python -c "from chromadb.utils.embedding_functions import ONNXMiniLM_L6_V2; ONNXMiniLM_L6_V2()"
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+
+      # Chroma must live somewhere writable. Free instances have no persistent
+      # disk, so this is a cache that empties on restart, which is fine: it is
+      # a similarity cache, not a source of truth.
+      - key: CHROMA_PATH
+        value: /tmp/chroma_db
+
+      # Secrets: set these in the Render dashboard, never in this file.
+      - key: GROQ_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: ADMIN_KEY
+        sync: false
+
+      # Retrieval tuning. SIMILARITY_THRESHOLD may need lowering after the
+      # embedding swap, since MiniLM and PubMedBERT do not score alike.
+      - key: SIMILARITY_THRESHOLD
+        value: "0.75"
+      - key: MAX_SEARCH_RESULTS
+        value: "5"
+      - key: MAX_RETRY_LOOPS
+        value: "2"

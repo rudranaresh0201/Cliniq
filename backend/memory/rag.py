@@ -5,8 +5,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 import time
 import logging
 import chromadb
-from sentence_transformers import SentenceTransformer
 from config import (
+    EMBEDDING_BACKEND,
     CHROMA_PATH,
     CHROMA_COLLECTION,
     EMBEDDING_MODEL,
@@ -83,15 +83,31 @@ def reset_collection_if_model_changed():
 reset_collection_if_model_changed()
 
 
-def _get_model() -> SentenceTransformer:
+def _get_model():
+    """Load the embedder for the configured backend, once.
+
+    Imported inside the function on purpose: importing sentence_transformers at
+    module scope would pull torch into memory even when the ONNX backend is the
+    one selected, which is the whole problem this is avoiding.
+    """
     global _embed_model
     if _embed_model is None:
-        _embed_model = SentenceTransformer(EMBEDDING_MODEL)
+        if EMBEDDING_BACKEND == "torch":
+            from sentence_transformers import SentenceTransformer
+            _embed_model = SentenceTransformer(EMBEDDING_MODEL)
+        else:
+            from chromadb.utils.embedding_functions import ONNXMiniLM_L6_V2
+            _embed_model = ONNXMiniLM_L6_V2()
     return _embed_model
 
 
 def _embed(text: str) -> list[float]:
-    return _get_model().encode(text, convert_to_numpy=True).tolist()
+    model = _get_model()
+    if EMBEDDING_BACKEND == "torch":
+        return model.encode(text, convert_to_numpy=True).tolist()
+    # chromadb embedding functions take a list of documents and return a list
+    # of vectors, so unwrap the single result.
+    return list(model([text])[0])
 
 
 def check_cache(query: str) -> dict | None:
